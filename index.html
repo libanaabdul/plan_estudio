@@ -564,11 +564,47 @@ function catLabel(c){
   return {aws:'☁️ AWS',ai:'🤖 AI Pract.',terraform:'🟣 Terraform',cca:'✨ CCA',saa:'🏗️ SAA',english:'🇬🇧 Inglés',baby:'🩷 Bebé',repaso:'🔁 Repaso',examen:'🏆 Examen',descanso:'😴 Descanso'}[c]||c;
 }
 
-function saveData(){try{localStorage.setItem('studyplan_v3',JSON.stringify(data));}catch(e){}}
-function loadData(){
-  try{const s=localStorage.getItem('studyplan_v3');if(s){data=JSON.parse(s);return;}}catch(e){}
-  data=INITIAL.map((d,i)=>({...d,id:i,done:false}));
-  saveData();
+const API_URL='https://script.google.com/macros/s/AKfycbycWCpCG_RbGWqMXk8hHcSwR8zqS54PI1L0trAykcdsQFEQtZGftVNV1njf2CCjZY5NbQ/exec';
+
+function showStatus(msg,color='var(--english)'){
+  let el=document.getElementById('status-msg');
+  if(!el){el=document.createElement('div');el.id='status-msg';el.style.cssText='position:fixed;bottom:1.2rem;right:1.2rem;padding:.5rem 1rem;border-radius:8px;font-size:.75rem;font-family:JetBrains Mono,monospace;z-index:999;transition:opacity .4s;';document.body.appendChild(el);}
+  el.style.background=color;el.style.color='#000';el.style.opacity='1';el.textContent=msg;
+  setTimeout(()=>{el.style.opacity='0';},2500);
+}
+
+async function saveData(){
+  showStatus('💾 Guardando...','var(--aws)');
+  try{
+    await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'saveAll',rows:data})});
+    showStatus('✅ Guardado en Google Sheets','var(--english)');
+  }catch(e){
+    showStatus('❌ Error al guardar','#f87171');
+    console.error(e);
+  }
+}
+
+async function loadData(){
+  showStatus('⏳ Cargando datos...','var(--terraform)');
+  try{
+    const res=await fetch(API_URL+'?action=getAll');
+    const rows=await res.json();
+    if(rows&&rows.length>0){
+      data=rows.map(r=>({
+        ...r,
+        id:Number(r.id)||Math.random(),
+        done:r.done==='TRUE'||r.done===true||r.done==='true'
+      }));
+      showStatus('✅ Datos cargados','var(--english)');
+    } else {
+      data=INITIAL.map((d,i)=>({...d,id:i,done:false}));
+      await saveData();
+    }
+  }catch(e){
+    showStatus('⚠️ Sin conexión — cargando datos locales','var(--aws)');
+    try{const s=localStorage.getItem('studyplan_v3');if(s){data=JSON.parse(s);return;}}catch(e2){}
+    data=INITIAL.map((d,i)=>({...d,id:i,done:false}));
+  }
 }
 
 function filterData(){return activeFilter==='all'?data:data.filter(d=>d.cat===activeFilter);}
@@ -689,7 +725,7 @@ function toggleWeek(id){
 
 function toggleDone(id){
   const item=data.find(d=>d.id===id);
-  if(item){item.done=!item.done;saveData();updateStats();renderCalendar();renderTable();renderWeekly();}
+  if(item){item.done=!item.done;updateStats();renderCalendar();renderTable();renderWeekly();saveData();}
 }
 
 function saveField(id,field,val){
@@ -740,23 +776,23 @@ function saveModal(){
   };
   if(editingId!==null){Object.assign(data.find(d=>d.id===editingId),fields);}
   else{data.push({id:Date.now(),done:false,...fields});}
-  saveData();updateStats();renderCalendar();renderTable();renderWeekly();closeModal();
+  updateStats();renderCalendar();renderTable();renderWeekly();closeModal();saveData();
 }
 
 function deleteItem(){
   if(editingId===null)return;
   if(!confirm('¿Eliminar esta actividad?'))return;
   data=data.filter(d=>d.id!==editingId);
-  saveData();updateStats();renderCalendar();renderTable();renderWeekly();closeModal();
+  updateStats();renderCalendar();renderTable();renderWeekly();closeModal();saveData();
 }
 
 function resetData(){
   if(!confirm('¿Resetear al plan original? Perderás todos tus cambios y progreso.'))return;
-  localStorage.removeItem('studyplan_v3');
-  loadData();updateStats();renderCalendar();renderTable();renderWeekly();
+  data=INITIAL.map((d,i)=>({...d,id:i,done:false}));
+  saveData().then(()=>{updateStats();renderCalendar();renderTable();renderWeekly();});
 }
 
-loadData();updateStats();renderCalendar();
+loadData().then(()=>{updateStats();renderCalendar();});
 </script>
 </body>
 </html>
