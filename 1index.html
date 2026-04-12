@@ -662,18 +662,8 @@ function renderCalendar(){
   }
   grid.innerHTML=html;
 }
-function prevMonth(){
-  const min=new Date(2026,3,1);
-  const prev=new Date(currentMonth.getFullYear(),currentMonth.getMonth()-1,1);
-  if(prev>=min){currentMonth=prev;renderCalendar();}
-  else{showStatus('📅 Abril 2026 es el inicio del plan','var(--muted)');}
-}
-function nextMonth(){
-  const max=new Date(2026,9,1);
-  const next=new Date(currentMonth.getFullYear(),currentMonth.getMonth()+1,1);
-  if(next<=max){currentMonth=next;renderCalendar();}
-  else{showStatus('📅 Octubre 2026 es el fin del plan','var(--muted)');}
-}
+function prevMonth(){currentMonth.setMonth(currentMonth.getMonth()-1);renderCalendar();}
+function nextMonth(){currentMonth.setMonth(currentMonth.getMonth()+1);renderCalendar();}
 
 function renderTable(){
   const fd=filterData();
