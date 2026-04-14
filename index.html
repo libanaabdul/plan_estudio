@@ -826,13 +826,32 @@ function showStatus(msg,color='var(--english)'){
 
 // ── DATA ──
 async function saveData(){
-  showStatus('💾 Guardando...','var(--aws)');
+  // Only used for full resets - per-row saves use saveRow/deleteRow
+  showStatus('💾 Guardando plan completo...','var(--aws)');
   try{
     await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'saveAll',rows:data})});
     showStatus('✅ Guardado','var(--english)');
     localStorage.setItem('studyplan_backup',JSON.stringify(data));
   }catch(e){
-    showStatus('❌ Error al guardar — guardado local','#f87171');
+    showStatus('❌ Error al guardar','#f87171');
+    localStorage.setItem('studyplan_backup',JSON.stringify(data));
+  }
+}
+
+async function saveRow(item){
+  try{
+    await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'saveRow',row:item})});
+    localStorage.setItem('studyplan_backup',JSON.stringify(data));
+  }catch(e){
+    localStorage.setItem('studyplan_backup',JSON.stringify(data));
+  }
+}
+
+async function deleteRow(id){
+  try{
+    await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'deleteRow',id:String(id)})});
+    localStorage.setItem('studyplan_backup',JSON.stringify(data));
+  }catch(e){
     localStorage.setItem('studyplan_backup',JSON.stringify(data));
   }
 }
@@ -844,27 +863,42 @@ async function loadData(){
     if(rows&&rows.length>0){
       data=rows.map((r,i)=>({
         id:Number(r.id)||i,
-        name:r.name||'',date:(r.date||'').toString().slice(0,10),cat:r.cat||'descanso',
-        dur:r.dur||'',week:r.week||'',topics:r.topics||'',
+        name:r.name||'',
+        date:(r.date||'').toString().slice(0,10),
+        cat:r.cat||'descanso',
+        dur:r.dur||'',
+        week:r.week||'',
+        topics:r.topics||'',
         course:r.course||'',
-        links:r.links?JSON.parse(r.links):migrateLegacyLinks(r),
-        notes:r.notes||'',realDur:r.realDur||'',
+        links:safeParseLinks(r.links),
+        notes:r.notes||'',
+        realDur:r.realDur||'',
         done:r.done==='TRUE'||r.done===true||r.done==='true',
         postponed:r.postponed==='TRUE'||r.postponed===true||r.postponed==='true'
       }));
+      // DO NOT save again here - prevents duplication
+      localStorage.setItem('studyplan_backup',JSON.stringify(data));
     } else {
+      // Sheet is empty - initialize once
       initFromDefault();
-      await saveData();
+      await saveData(); // Only called once when sheet is empty
     }
   }catch(e){
     const backup=localStorage.getItem('studyplan_backup');
     if(backup){
-        data=JSON.parse(backup);
-        data.forEach(r=>{if(r.date)r.date=(r.date||'').toString().slice(0,10);});
-        showStatus('⚠️ Cargado desde backup local','var(--aws)');
-      }
-    else{initFromDefault();}
+      data=JSON.parse(backup);
+      data.forEach(r=>{if(r.date)r.date=(r.date||'').toString().slice(0,10);});
+      showStatus('⚠️ Sin conexión — usando backup local','var(--aws)');
+    } else {
+      initFromDefault();
+    }
   }
+}
+
+function safeParseLinks(val){
+  if(!val) return [];
+  if(Array.isArray(val)) return val;
+  try{return JSON.parse(val);}catch(e){return [];}
 }
 
 function migrateLegacyLinks(r){
@@ -1062,7 +1096,8 @@ function rescheduleOverdue(){
   if(overdue.length===0){showStatus('✅ Sin actividades atrasadas','var(--english)');return;}
   overdue.forEach(item=>item.date=today);
   showStatus(`📅 ${overdue.length} actividades movidas a hoy`,'var(--terraform)');
-  renderToday();renderCalendar();renderTable();renderWeekly();saveData();
+  renderToday();renderCalendar();renderTable();renderWeekly();
+  saveData(); // bulk update needed here
 }
 
 // ── CALENDAR ──
@@ -1189,13 +1224,13 @@ function toggleDone(id){
     item.done=!item.done;
     if(item.done) item.postponed=false;
     updateStats();renderToday();renderCalendar();renderTable();renderWeekly();
-    saveData();
+    saveRow(item);
   }
 }
 
 function saveField(id,field,val){
   const item=data.find(d=>d.id===id);
-  if(item){item[field]=val.trim();saveData();}
+  if(item){item[field]=val.trim();saveRow(item);}
 }
 
 // ── DRAG & DROP ──
@@ -1214,7 +1249,8 @@ function drop(e,newDate){
   if(item){
     item.date=newDate;
     showStatus('📅 Movido a '+newDate,'var(--terraform)');
-    updateStats();renderCalendar();renderTable();renderWeekly();renderToday();saveData();
+    updateStats();renderCalendar();renderTable();renderWeekly();renderToday();
+    saveRow(item);
   }
   dragId=null;
 }
@@ -1311,16 +1347,26 @@ function saveModal(){
     realDur:document.getElementById('m-realDur').value,
     links:getLinksFromModal(),
   };
-  if(editingId!==null){Object.assign(data.find(d=>d.id===editingId),fields);}
-  else{data.push({id:Date.now(),done:false,postponed:false,...fields});}
-  updateStats();renderToday();renderCalendar();renderTable();renderWeekly();closeModal();saveData();
+  if(editingId!==null){
+    const item=data.find(d=>d.id===editingId);
+    Object.assign(item,fields);
+    updateStats();renderToday();renderCalendar();renderTable();renderWeekly();closeModal();
+    saveRow(item);
+  } else {
+    const newItem={id:Date.now(),done:false,postponed:false,...fields};
+    data.push(newItem);
+    updateStats();renderToday();renderCalendar();renderTable();renderWeekly();closeModal();
+    saveRow(newItem);
+  }
 }
 
 function deleteItem(){
   if(editingId===null)return;
   if(!confirm('¿Eliminar esta actividad?'))return;
+  const deletedId=editingId;
   data=data.filter(d=>d.id!==editingId);
-  updateStats();renderToday();renderCalendar();renderTable();renderWeekly();closeModal();saveData();
+  updateStats();renderToday();renderCalendar();renderTable();renderWeekly();closeModal();
+  deleteRow(deletedId);
 }
 
 function postponeItem(){
@@ -1329,7 +1375,8 @@ function postponeItem(){
   if(item){
     item.postponed=!item.postponed;
     showStatus(item.postponed?'⏸ Pospuesta':'▶ Activa de nuevo','var(--postponed)');
-    updateStats();renderToday();renderCalendar();renderTable();renderWeekly();closeModal();saveData();
+    updateStats();renderToday();renderCalendar();renderTable();renderWeekly();closeModal();
+    saveRow(item);
   }
 }
 
@@ -1357,8 +1404,12 @@ function closeFocusOutside(e){if(e.target===document.getElementById('focus-overl
 function markFocusDone(){
   if(focusId===null)return;
   const item=data.find(d=>d.id===focusId);
-  if(item){item.done=true;showStatus('✅ ¡Completada!','var(--english)');}
-  updateStats();renderToday();renderCalendar();renderTable();renderWeekly();saveData();
+  if(item){
+    item.done=true;
+    showStatus('✅ ¡Completada!','var(--english)');
+    updateStats();renderToday();renderCalendar();renderTable();renderWeekly();
+    saveRow(item);
+  }
   closeFocus();
 }
 
