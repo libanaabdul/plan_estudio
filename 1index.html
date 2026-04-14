@@ -803,8 +803,14 @@ let linkRows=[];
 // POMODORO
 let pomoTimer=null,pomoSeconds=25*60,pomoIsWork=true,pomoRunning=false,pomosToday=0;
 
-function getTodayStr(){return new Date().toISOString().slice(0,10);}
-function getTomorrowStr(){const d=new Date();d.setDate(d.getDate()+1);return d.toISOString().slice(0,10);}
+function getTodayStr(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function getTomorrowStr(){
+  const d=new Date();d.setDate(d.getDate()+1);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 
 function catLabel(c){
   return {aws:'☁️ AWS',ai:'🤖 AI Pract.',terraform:'🟣 Terraform',cca:'✨ CCA',saa:'🏗️ SAA',
@@ -838,7 +844,7 @@ async function loadData(){
     if(rows&&rows.length>0){
       data=rows.map((r,i)=>({
         id:Number(r.id)||i,
-        name:r.name||'',date:r.date||'',cat:r.cat||'descanso',
+        name:r.name||'',date:(r.date||'').toString().slice(0,10),cat:r.cat||'descanso',
         dur:r.dur||'',week:r.week||'',topics:r.topics||'',
         course:r.course||'',
         links:r.links?JSON.parse(r.links):migrateLegacyLinks(r),
@@ -852,7 +858,11 @@ async function loadData(){
     }
   }catch(e){
     const backup=localStorage.getItem('studyplan_backup');
-    if(backup){data=JSON.parse(backup);showStatus('⚠️ Cargado desde backup local','var(--aws)');}
+    if(backup){
+        data=JSON.parse(backup);
+        data.forEach(r=>{if(r.date)r.date=(r.date||'').toString().slice(0,10);});
+        showStatus('⚠️ Cargado desde backup local','var(--aws)');
+      }
     else{initFromDefault();}
   }
 }
@@ -873,27 +883,45 @@ function initFromDefault(){
 }
 
 function addDailyBabyActivities(){
-  const existing=new Set(data.filter(d=>d.cat==='baby').map(d=>d.date));
-  const startDate=new Date('2026-04-13');
-  const endDate=new Date('2026-09-29');
+  // Get dates that already have a SHORT baby activity (15-20 min)
+  // We add one per day regardless, but avoid duplicating the same template name
+  const babyByDate={};
+  data.filter(d=>d.cat==='baby').forEach(d=>{
+    if(!babyByDate[d.date])babyByDate[d.date]=[];
+    babyByDate[d.date].push(d.name);
+  });
+
+  const startDate=new Date(2026,3,13); // April 13
+  const endDate=new Date(2026,8,29);   // Sep 29
   let babyIdx=0;
+
   for(let d=new Date(startDate);d<=endDate;d.setDate(d.getDate()+1)){
-    const ds=d.toISOString().slice(0,10);
+    const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
     const dow=d.getDay();
     if(dow===0) continue; // skip sundays
-    if(!existing.has(ds)){
-      const tpl=BABY_DAILY[babyIdx%BABY_DAILY.length];
+
+    const tpl=BABY_DAILY[babyIdx%BABY_DAILY.length];
+    const tplName='🩷 Bebé: '+tpl.name;
+    const existing=babyByDate[ds]||[];
+
+    // Only skip if this exact activity already exists for this day
+    if(!existing.includes(tplName)){
       const week=data.find(x=>x.date===ds)?.week||'';
       data.push({
         id:Date.now()+babyIdx+Math.random(),
-        name:`🩷 Bebé: ${tpl.name}`,date:ds,cat:'baby',
+        name:tplName,date:ds,cat:'baby',
         dur:tpl.dur,week,topics:tpl.topics,
         course:'',links:[],notes:'',realDur:'',done:false,postponed:false
       });
-      babyIdx++;
     }
+    babyIdx++;
   }
-  data.sort((a,b)=>a.date.localeCompare(b.date)||(a.cat==='baby'?1:-1));
+  data.sort((a,b)=>{
+    if(a.date!==b.date)return a.date.localeCompare(b.date);
+    if(a.cat==='baby'&&b.cat!=='baby')return 1;
+    if(a.cat!=='baby'&&b.cat==='baby')return -1;
+    return 0;
+  });
 }
 
 // ── STATS ──
@@ -1017,7 +1045,7 @@ function renderToday(){
   weekItems.forEach(item=>{if(!byDay[item.date])byDay[item.date]=[];byDay[item.date].push(item);});
   weekDiv.innerHTML=Object.entries(byDay).map(([date,items])=>`
     <div style="margin-bottom:.8rem">
-      <div style="font-size:.65rem;color:var(--muted);margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.08em">${date}</div>
+      <div style="font-size:.65rem;color:var(--muted);margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.08em">${date.slice(0,10)}</div>
       ${items.map(item=>`
         <div class="today-item" style="margin-bottom:.25rem">
           <div class="checkbox-cell ${item.done?'checked':''}" onclick="toggleDone(${item.id})"></div>
@@ -1056,7 +1084,7 @@ function renderCalendar(){
   for(let d=1;d<=dim;d++){
     const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const isToday=ds===today;
-    const evs=fd.filter(e=>e.date===ds);
+    const evs=fd.filter(e=>(e.date||"").slice(0,10)===ds);
     html+=`<div class="cal-day${isToday?' today':''}" onclick="handleDayClick(event,'${ds}')" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="drop(event,'${ds}')">
       <div class="cal-day-num">${d}</div>`;
     evs.forEach(e=>{
@@ -1094,7 +1122,7 @@ function renderTable(){
     const linksHtml=(item.links||[]).map(l=>l.url?`<a href="${l.url}" target="_blank" title="${l.label||l.url}">🔗${l.label?` ${l.label}`:''}</a>`:'').join('');
     return `<tr class="${item.done?'done-row':''}${isOverdue?' overdue-row':''}${item.postponed?' postponed-row':''}">
       <td><div class="checkbox-cell ${item.done?'checked':''}" onclick="toggleDone(${item.id})"></div></td>
-      <td style="white-space:nowrap;font-size:.65rem${isOverdue?';color:var(--danger)':''}">${item.date}${isOverdue?' ⚠️':''}</td>
+      <td style="white-space:nowrap;font-size:.65rem${isOverdue?';color:var(--danger)':''}">${(item.date||'').slice(0,10)}${isOverdue?' ⚠️':''}</td>
       <td><span class="cat-badge ${item.cat}">${catLabel(item.cat)}</span></td>
       <td><div class="edit-cell" contenteditable="true" onblur="saveField(${item.id},'name',this.innerText)" style="min-width:130px">${item.name}</div></td>
       <td><div class="edit-cell" contenteditable="true" onblur="saveField(${item.id},'dur',this.innerText)" style="min-width:45px">${item.dur}</div></td>
@@ -1131,7 +1159,7 @@ function renderWeekly(){
           const isOverdue=item.date<today&&!item.done&&item.cat!=='descanso';
           return `<div class="week-item${item.done?' done':''}${isOverdue?' overdue':''}${item.postponed?' postponed-item':''}">
             <div class="checkbox-cell ${item.done?'checked':''}" onclick="toggleDone(${item.id})"></div>
-            <div class="week-item-date">${item.date.slice(5)}</div>
+            <div class="week-item-date">${(item.date||''). slice(0,10).slice(5)}</div>
             <div>
               <span class="cat-badge ${item.cat}" style="font-size:.6rem">${catLabel(item.cat)}</span>
               <div class="week-item-name">${item.postponed?'⏸ ':''}${item.name}</div>
@@ -1274,7 +1302,7 @@ function closeModalOutside(e){if(e.target===document.getElementById('modal-overl
 function saveModal(){
   const fields={
     name:document.getElementById('m-name').value,
-    date:document.getElementById('m-date').value,
+    date:(document.getElementById('m-date').value||'').slice(0,10),
     cat:document.getElementById('m-cat').value,
     dur:document.getElementById('m-dur').value,
     week:document.getElementById('m-week').value,
