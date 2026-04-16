@@ -825,31 +825,37 @@ function showStatus(msg,color='var(--english)'){
 }
 
 // ── DATA ──
+const FETCH_HEADERS={'Content-Type':'application/json'};
+
 async function saveData(){
   // Only used for full resets - per-row saves use saveRow/deleteRow
   showStatus('💾 Guardando plan completo...','var(--aws)');
   try{
-    await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'saveAll',rows:data})});
+    const res=await fetch(API_URL,{method:'POST',headers:FETCH_HEADERS,body:JSON.stringify({action:'saveAll',rows:data})});
+    if(!res.ok) throw new Error('HTTP '+res.status);
     showStatus('✅ Guardado','var(--english)');
     localStorage.setItem('studyplan_backup',JSON.stringify(data));
   }catch(e){
-    showStatus('❌ Error al guardar','#f87171');
-    localStorage.setItem('studyplan_backup',JSON.stringify(data));
+    showStatus('❌ Error al guardar — datos en backup local','#f87171');
+    if(data.length>0) localStorage.setItem('studyplan_backup',JSON.stringify(data));
   }
 }
 
 async function saveRow(item){
   try{
-    await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'saveRow',row:item})});
+    const res=await fetch(API_URL,{method:'POST',headers:FETCH_HEADERS,body:JSON.stringify({action:'saveRow',row:item})});
+    if(!res.ok) throw new Error('HTTP '+res.status);
     localStorage.setItem('studyplan_backup',JSON.stringify(data));
   }catch(e){
+    showStatus('⚠️ No se pudo guardar en la nube — guardado local','var(--postponed)');
     localStorage.setItem('studyplan_backup',JSON.stringify(data));
   }
 }
 
 async function deleteRow(id){
   try{
-    await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'deleteRow',id:String(id)})});
+    const res=await fetch(API_URL,{method:'POST',headers:FETCH_HEADERS,body:JSON.stringify({action:'deleteRow',id:String(id)})});
+    if(!res.ok) throw new Error('HTTP '+res.status);
     localStorage.setItem('studyplan_backup',JSON.stringify(data));
   }catch(e){
     localStorage.setItem('studyplan_backup',JSON.stringify(data));
@@ -859,6 +865,7 @@ async function deleteRow(id){
 async function loadData(){
   try{
     const res=await fetch(API_URL+'?action=getAll');
+    if(!res.ok) throw new Error('HTTP '+res.status);
     const rows=await res.json();
     if(rows&&rows.length>0){
       data=rows.map((r,i)=>({
@@ -876,12 +883,19 @@ async function loadData(){
         done:r.done==='TRUE'||r.done===true||r.done==='true',
         postponed:r.postponed==='TRUE'||r.postponed===true||r.postponed==='true'
       }));
-      // DO NOT save again here - prevents duplication
       localStorage.setItem('studyplan_backup',JSON.stringify(data));
     } else {
-      // Sheet is empty - initialize once
-      initFromDefault();
-      await saveData(); // Only called once when sheet is empty
+      // DynamoDB vacío — usar localStorage si existe, si no inicializar por defecto
+      const backup=localStorage.getItem('studyplan_backup');
+      if(backup){
+        data=JSON.parse(backup);
+        data.forEach(r=>{if(r.date)r.date=(r.date||'').toString().slice(0,10);});
+        showStatus('🔄 Restaurando datos desde backup local...','var(--terraform)');
+        await saveData(); // Re-sincronizar backup local a DynamoDB
+      } else {
+        initFromDefault();
+        await saveData();
+      }
     }
   }catch(e){
     const backup=localStorage.getItem('studyplan_backup');
