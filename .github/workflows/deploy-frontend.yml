@@ -1,0 +1,38 @@
+name: Deploy Frontend to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/deploy-frontend.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write  # needed to push to gh-pages branch
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Inject the real API URL into the HTML before deploying.
+      # Set API_URL as a secret in: Settings → Secrets → Actions → New repository secret
+      - name: Inject API URL
+        run: |
+          if [ -z "${{ secrets.API_URL }}" ]; then
+            echo "⚠️  Warning: API_URL secret is not set. The app will fall back to localStorage."
+          fi
+          sed -i "s|__API_URL__|${{ secrets.API_URL }}|g" frontend/index.html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./frontend
+          # Keep CNAME file if you have a custom domain
+          cname: ${{ vars.CUSTOM_DOMAIN }}

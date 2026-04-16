@@ -1,0 +1,7 @@
+# Copy this file to terraform.tfvars and edit as needed.
+# terraform.tfvars is gitignored — never commit real credentials.
+
+aws_region   = "us-east-1"
+project_name = "plan-estudio"
+table_name   = "study-plan-items"
+environment  = "prod"

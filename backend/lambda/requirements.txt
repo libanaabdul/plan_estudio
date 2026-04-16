@@ -1,0 +1,3 @@
+# boto3 is already included in the AWS Lambda Python runtime.
+# List it here only if you need a specific version pinned.
+# boto3==1.34.0
