@@ -845,10 +845,15 @@ async function saveData(){
 async function saveRow(item){
   try{
     const res=await fetch(API_URL,{method:'POST',headers:FETCH_HEADERS,body:JSON.stringify({action:'saveRow',row:item})});
-    if(!res.ok) throw new Error('HTTP '+res.status);
+    if(!res.ok){
+      const body=await res.text().catch(()=>'');
+      console.error('[saveRow] HTTP',res.status,body);
+      throw new Error('HTTP '+res.status+' '+body);
+    }
     localStorage.setItem('studyplan_backup',JSON.stringify(data));
   }catch(e){
-    showStatus('⚠️ No se pudo guardar en la nube — guardado local','var(--postponed)');
+    console.error('[saveRow] error:',e.message,'item id:',item.id);
+    showStatus('⚠️ Error al guardar: '+e.message,'var(--postponed)');
     localStorage.setItem('studyplan_backup',JSON.stringify(data));
   }
 }
