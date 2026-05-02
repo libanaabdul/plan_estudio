@@ -22,12 +22,17 @@ jobs:
 
       # Inject the real API URL into the HTML before deploying.
       # Set API_URL as a secret in: Settings → Secrets → Actions → New repository secret
-      - name: Inject API URL
+      - name: Inject API URL and Cognito config
         run: |
           if [ -z "${{ secrets.API_URL }}" ]; then
-            echo "⚠️  Warning: API_URL secret is not set. The app will fall back to localStorage."
+            echo "⚠️  Warning: API_URL secret is not set."
+          fi
+          if [ -z "${{ secrets.COGNITO_CLIENT_ID }}" ]; then
+            echo "⚠️  Warning: COGNITO_CLIENT_ID secret is not set. Login will be skipped in dev mode."
           fi
           sed -i "s|__API_URL__|${{ secrets.API_URL }}|g" frontend/index.html
+          sed -i "s|__COGNITO_CLIENT_ID__|${{ secrets.COGNITO_CLIENT_ID }}|g" frontend/index.html
+          sed -i "s|__COGNITO_REGION__|${{ secrets.COGNITO_REGION }}|g" frontend/index.html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4

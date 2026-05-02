@@ -12,3 +12,18 @@ output "lambda_function_name" {
   description = "Lambda function name"
   value       = aws_lambda_function.study_plan_api.function_name
 }
+
+output "cognito_user_pool_id" {
+  description = "Cognito User Pool ID — necesario para crear usuarios con AWS CLI"
+  value       = aws_cognito_user_pool.main.id
+}
+
+output "cognito_client_id" {
+  description = "Cognito App Client ID — usar como COGNITO_CLIENT_ID en el frontend"
+  value       = aws_cognito_user_pool_client.frontend.id
+}
+
+output "cognito_region" {
+  description = "AWS region donde vive el User Pool"
+  value       = var.aws_region
+}
