@@ -823,7 +823,7 @@ const COGNITO_CLIENT_ID='__COGNITO_CLIENT_ID__';
 const COGNITO_REGION='__COGNITO_REGION__';
 const COGNITO_ENDPOINT=`https://cognito-idp.${COGNITO_REGION}.amazonaws.com/`;
 
-const _LOCAL_DEV=COGNITO_CLIENT_ID==='__COGNITO_CLIENT_ID__';
+const _LOCAL_DEV=COGNITO_CLIENT_ID.startsWith('__');
 
 // Muestra la pantalla de login, oculta la app
 function showLoginScreen(){
