@@ -367,7 +367,7 @@ resource "aws_api_gateway_integration_response" "proxy_options_200" {
   response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
     "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,OPTIONS'"
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'https://tracker.cloudreviews.me'"
   }
 
   depends_on = [aws_api_gateway_integration.proxy_options]
@@ -414,7 +414,7 @@ resource "aws_api_gateway_integration_response" "root_options_200" {
   response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
     "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,OPTIONS'"
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'https://tracker.cloudreviews.me'"
   }
 
   depends_on = [aws_api_gateway_integration.root_options]
