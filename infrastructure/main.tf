@@ -12,12 +12,11 @@ terraform {
     }
   }
 
-  # Uncomment and configure for remote state (recommended):
-  # backend "s3" {
-  #   bucket = "your-terraform-state-bucket"
-  #   key    = "plan-estudio/terraform.tfstate"
-  #   region = "us-east-1"
-  # }
+  backend "s3" {
+    bucket = "plan-estudio-tfstate-libi"
+    key    = "plan-estudio/terraform.tfstate"
+    region = "us-east-1"
+  }
 }
 
 provider "aws" {
