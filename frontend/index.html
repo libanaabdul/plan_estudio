@@ -1115,8 +1115,8 @@ function addDailyBabyActivities(){
     babyByDate[d.date].push(d.name);
   });
 
-  const startDate=new Date(2026,3,13); // April 13
-  const endDate=new Date(2026,8,29);   // Sep 29
+  const startDate=new Date(2026,4,1);  // May 1
+  const endDate=new Date(2026,9,17);   // Oct 17
   let babyIdx=0;
 
   for(let d=new Date(startDate);d<=endDate;d.setDate(d.getDate()+1)){
