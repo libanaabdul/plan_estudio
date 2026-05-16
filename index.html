@@ -1198,6 +1198,7 @@ async function loadData(){
         postponed:r.postponed==='TRUE'||r.postponed===true||r.postponed==='true'
       }));
       localStorage.setItem('studyplan_backup',JSON.stringify(data));
+      await mergeAIEngEntries();
     } else {
       // DynamoDB vacío — usar localStorage si existe, si no inicializar por defecto
       const backup=localStorage.getItem('studyplan_backup');
@@ -1242,6 +1243,21 @@ function initFromDefault(){
     links:migrateLegacyLinks(d)
   }));
   addDailyBabyActivities();
+}
+
+async function mergeAIEngEntries(){
+  const hasAI=data.some(d=>d.week&&d.week.startsWith('AI Eng S'));
+  if(hasAI) return;
+  const maxId=data.reduce((m,d)=>Math.max(m,Number(d.id)||0),0);
+  const aiEntries=INITIAL.filter(d=>d.week&&d.week.startsWith('AI Eng S'));
+  if(!aiEntries.length) return;
+  const newEntries=aiEntries.map((d,i)=>({
+    ...d,id:maxId+i+1,done:false,postponed:false,notes:'',realDur:'',
+    links:migrateLegacyLinks(d)
+  }));
+  data=data.concat(newEntries);
+  await saveData();
+  showStatus('✅ Plan AI Engineer agregado ('+newEntries.length+' entradas)','var(--ai)');
 }
 
 function addDailyBabyActivities(){
