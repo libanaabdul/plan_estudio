@@ -1188,7 +1188,7 @@ async function saveData(){
     showStatus('✅ Guardado','var(--english)');
     localStorage.setItem('studyplan_backup',JSON.stringify(data));
   }catch(e){
-    showStatus('❌ Error al guardar — datos en backup local','#f87171');
+    showStatus('❌ Error al guardar en la nube — backup local activo','#f87171');
     // Solo guardar en localStorage si los datos son válidos (no el reset por defecto)
     if(data.length>0) localStorage.setItem('studyplan_backup',JSON.stringify(data));
   }

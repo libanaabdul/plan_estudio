@@ -113,7 +113,7 @@ resource "aws_lambda_function" "study_plan_api" {
   runtime          = "python3.12"
   filename         = data.archive_file.lambda_zip.output_path
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
-  timeout          = 10
+  timeout          = 29
   memory_size      = 128
 
   environment {
