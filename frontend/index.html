@@ -1221,19 +1221,17 @@ async function deleteRow(id){
 
 function deduplicateData(rows){
   const seen=new Map();
+  const score=x=>(x.done?10:0)+(x.notes?3:0)+(x.realDur?2:0);
   rows.forEach(r=>{
-    const key=(r.cat||'')+'|'+(r.week||'')+'|'+(r.topics||'').slice(0,40)+'|'+(r.name||'').slice(0,30);
-    if(!seen.has(key)){
-      seen.set(key,r);
-    } else {
-      const prev=seen.get(key);
-      const score=x=>(x.done?10:0)+(x.notes?3:0)+(x.realDur?2:0);
-      if(score(r)>score(prev)) seen.set(key,r);
-    }
+    // Baby: only 1 per day (they cycle via BABY_DAILY, don't need more than one)
+    const key=r.cat==='baby'
+      ? 'baby|'+r.date
+      : (r.cat||'')+'|'+(r.week||'')+'|'+(r.topics||'').slice(0,40)+'|'+(r.name||'').slice(0,30);
+    if(!seen.has(key)||score(r)>score(seen.get(key))) seen.set(key,r);
   });
   const result=[...seen.values()];
   const removed=rows.length-result.length;
-  if(removed>0) console.log(`[dedup] Removed ${removed} duplicate entries`);
+  if(removed>0) console.log(`[dedup] Removed ${removed} duplicate entries (${removed} items)`);
   return result;
 }
 
@@ -1332,7 +1330,9 @@ async function migrateDates2026(){
     data.filter(d=>d.cat==='baby'&&d.date<'2026-06-10').forEach(d=>{
       const old=new Date(d.date);
       old.setDate(old.getDate()+40);
-      d.date=old.toISOString().slice(0,10);
+      const shifted=old.toISOString().slice(0,10);
+      // Never land before the plan start
+      d.date=shifted<'2026-06-10'?'2026-06-10':shifted;
     });
   }
 
