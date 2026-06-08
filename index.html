@@ -1220,8 +1220,6 @@ async function deleteRow(id){
 }
 
 function deduplicateData(rows){
-  // Two entries are the same logical activity if they share cat+week+topics prefix.
-  // When duplicates exist, keep the one with the most progress (done=true, notes, realDur).
   const seen=new Map();
   rows.forEach(r=>{
     const key=(r.cat||'')+'|'+(r.week||'')+'|'+(r.topics||'').slice(0,40)+'|'+(r.name||'').slice(0,30);
@@ -1229,14 +1227,13 @@ function deduplicateData(rows){
       seen.set(key,r);
     } else {
       const prev=seen.get(key);
-      // Keep whichever has more progress
       const score=x=>(x.done?10:0)+(x.notes?3:0)+(x.realDur?2:0);
       if(score(r)>score(prev)) seen.set(key,r);
     }
   });
   const result=[...seen.values()];
-  if(result.length<rows.length)
-    console.log(`[dedup] Removed ${rows.length-result.length} duplicate entries`);
+  const removed=rows.length-result.length;
+  if(removed>0) console.log(`[dedup] Removed ${removed} duplicate entries`);
   return result;
 }
 
@@ -1261,10 +1258,13 @@ async function loadData(){
         done:r.done==='TRUE'||r.done===true||r.done==='true',
         postponed:r.postponed==='TRUE'||r.postponed===true||r.postponed==='true'
       }));
+      const beforeDedup=data.length;
       data=deduplicateData(data);
+      const dedupChanged=data.length<beforeDedup;
       localStorage.setItem('studyplan_backup',JSON.stringify(data));
       await mergeAIEngEntries();
-      await migrateDates2026();
+      const migrated=await migrateDates2026();
+      if(dedupChanged&&!migrated) await saveData(); // persist dedup if migration didn't save
     } else {
       // DynamoDB vacío — usar localStorage si existe, si no inicializar por defecto
       const backup=localStorage.getItem('studyplan_backup');
@@ -1294,19 +1294,28 @@ async function loadData(){
   }
 }
 
-// Migra fechas viejas (< 2026-06-10) a la distribución 1 cert/día + 1 aieng/día.
-// Preserva done, notes, realDur y cualquier otro progreso.
+// Migra fechas viejas a distribución 1cert/día + 1aieng/día desde 2026-06-10.
+// Retorna true si guardó en DynamoDB.
 async function migrateDates2026(){
   const CERT_CATS=new Set(['aws','ai','terraform','cca','saa','repaso','english']);
-  const needsMigration=data.some(d=>CERT_CATS.has(d.cat)&&d.date<'2026-06-10');
-  if(!needsMigration) return;
 
-  const examDates=new Set(data.filter(d=>d.cat==='examen').map(d=>d.date));
+  // Contar cuántos cert/aieng esperamos según INITIAL
+  const EXPECTED_CERT=INITIAL.filter(d=>CERT_CATS.has(d.cat)).length;   // 169
+  const EXPECTED_AIENG=INITIAL.filter(d=>d.cat==='aieng').length;        // 138
 
   const certEntries=[...data.filter(d=>CERT_CATS.has(d.cat))].sort((a,b)=>a.date.localeCompare(b.date));
   const aiengEntries=[...data.filter(d=>d.cat==='aieng')].sort((a,b)=>a.date.localeCompare(b.date));
 
-  // Generar días de estudio (Lun-Sáb, sin domingos ni días de examen)
+  const hasOldCert =certEntries.some(d=>d.date<'2026-06-10');
+  const hasOldBaby =data.some(d=>d.cat==='baby'&&d.date<'2026-06-10');
+  const certDup    =certEntries.length>EXPECTED_CERT;
+  const aiengDup   =aiengEntries.length>EXPECTED_AIENG;
+
+  if(!hasOldCert&&!hasOldBaby&&!certDup&&!aiengDup) return false;
+
+  const examDates=new Set(data.filter(d=>d.cat==='examen').map(d=>d.date));
+
+  // Redistribuir cert y aieng
   const needed=Math.max(certEntries.length,aiengEntries.length);
   const studyDays=[];
   const cur=new Date('2026-06-10');
@@ -1315,13 +1324,22 @@ async function migrateDates2026(){
     if(cur.getDay()!==0&&!examDates.has(ds)) studyDays.push(ds);
     cur.setDate(cur.getDate()+1);
   }
-
   certEntries.forEach((item,i)=>{item.date=studyDays[i];});
   aiengEntries.forEach((item,i)=>{item.date=studyDays[i];});
 
+  // Mover baby viejos +40 días para alinearlos con el plan actual
+  if(hasOldBaby){
+    data.filter(d=>d.cat==='baby'&&d.date<'2026-06-10').forEach(d=>{
+      const old=new Date(d.date);
+      old.setDate(old.getDate()+40);
+      d.date=old.toISOString().slice(0,10);
+    });
+  }
+
   localStorage.setItem('studyplan_backup',JSON.stringify(data));
   await saveData();
-  showStatus('📅 Plan actualizado a nueva distribución (3 actividades/día)','var(--aieng)');
+  showStatus('📅 Plan sincronizado y limpio','var(--aieng)');
+  return true;
 }
 
 function safeParseLinks(val){
