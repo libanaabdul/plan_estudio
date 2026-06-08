@@ -117,11 +117,18 @@ def _handle(event):
 
         if action == "saveAll":
             rows = body.get("rows", [])
-            # DynamoDB batch_writer handles batches of 25 automatically
+            seen_ids: set = set()
+            deduped = []
+            for row in rows:
+                norm = _normalise(row)
+                rid = norm.get("id")
+                if rid and rid not in seen_ids:
+                    seen_ids.add(rid)
+                    deduped.append(norm)
             with table.batch_writer() as batch:
-                for row in rows:
-                    batch.put_item(Item=_normalise(row))
-            return ok({"ok": True, "count": len(rows)})
+                for row in deduped:
+                    batch.put_item(Item=row)
+            return ok({"ok": True, "count": len(deduped)})
 
         if action == "deleteRow":
             item_id = str(body.get("id", ""))
