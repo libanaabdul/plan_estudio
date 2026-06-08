@@ -99,6 +99,17 @@ body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospa
 .filter-btn.baby.active{color:var(--baby);border-color:var(--baby);background:var(--baby-bg);}
 .filter-btn.repaso.active{color:var(--repaso);border-color:var(--repaso);background:var(--repaso-bg);}
 .filter-btn.aieng.active{color:var(--aieng);border-color:var(--aieng);background:var(--aieng-bg);}
+.filter-btn.select-mode{color:var(--aieng);border-color:var(--aieng);}
+.sel-item{outline:2px solid var(--aieng)!important;background:rgba(74,222,128,0.08)!important;}
+#move-bar{position:fixed;bottom:0;left:0;right:0;background:var(--surface2);border-top:1px solid var(--aieng);padding:.7rem 2rem;display:flex;align-items:center;gap:.8rem;z-index:200;box-shadow:0 -4px 20px rgba(0,0,0,.5);}
+#move-bar.hidden{display:none;}
+#move-bar-count{font-size:.78rem;color:var(--aieng);font-weight:600;white-space:nowrap;}
+#move-bar input[type=date]{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:.3rem .6rem;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:.75rem;}
+#move-bar input[type=date]:focus{outline:1px solid var(--aieng);}
+.btn-move{padding:.35rem 1rem;background:var(--aieng);color:#000;border:none;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:600;cursor:pointer;}
+.btn-move:hover{opacity:.85;}
+.btn-cancel-sel{padding:.35rem .8rem;background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:.72rem;cursor:pointer;}
+.btn-cancel-sel:hover{color:var(--text);border-color:var(--text);}
 
 /* VIEWS */
 .view{display:none;padding:1.2rem 2rem;animation:fadeUp .3s ease both;}
@@ -392,6 +403,17 @@ tr.postponed-row{border-left:3px solid var(--postponed);}
   <button class="filter-btn baby" onclick="setFilter('baby',this)">🩷 Bebé</button>
   <button class="filter-btn repaso" onclick="setFilter('repaso',this)">🔁 Simulacro</button>
   <button class="filter-btn aieng" onclick="setFilter('aieng',this)">🧠 AI Eng</button>
+  <span style="color:var(--border);margin:0 .3rem">|</span>
+  <button class="filter-btn" id="btn-select-mode" onclick="toggleSelectMode()">☑ Seleccionar</button>
+</div>
+
+<!-- MOVE BAR -->
+<div id="move-bar" class="hidden">
+  <span id="move-bar-count">0 seleccionadas</span>
+  <span style="font-size:.72rem;color:var(--muted)">Mover a:</span>
+  <input type="date" id="move-date">
+  <button class="btn-move" onclick="moveSelected()">📅 Mover</button>
+  <button class="btn-cancel-sel" onclick="toggleSelectMode()">✕ Cancelar</button>
 </div>
 
 <!-- TODAY VIEW -->
@@ -1404,8 +1426,8 @@ function renderToday(){
     todayList.innerHTML=`<div class="today-empty">No hay actividades programadas para hoy.<br><span style="font-size:.7rem;color:var(--muted)">Puedes agregar una con el botón + o desde el calendario.</span></div>`;
   } else {
     todayList.innerHTML=todayItems.map(item=>`
-      <div class="today-item">
-        <div class="checkbox-cell ${item.done?'checked':''}" onclick="toggleDone(${item.id})"></div>
+      <div data-sel-id="${item.id}" class="today-item${selectMode&&selectedIds.has(item.id)?' sel-item':''}" ${selectMode?`onclick="toggleSelect(${item.id})"`:''}>
+        <div class="checkbox-cell ${item.done?'checked':''}" onclick="${selectMode?`event.stopPropagation();toggleSelect(${item.id})`:`toggleDone(${item.id})`}"></div>
         <span class="cat-badge ${item.cat}" style="font-size:.62rem">${catLabel(item.cat)}</span>
         <span style="${item.done?'text-decoration:line-through;opacity:.5':''}">${item.name}</span>
         ${item.dur?`<span style="color:var(--muted);font-size:.65rem">⏱${item.dur}</span>`:''}
@@ -1441,8 +1463,8 @@ function renderToday(){
     <div style="margin-bottom:.8rem">
       <div style="font-size:.65rem;color:var(--muted);margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.08em">${date.slice(0,10)}</div>
       ${items.map(item=>`
-        <div class="today-item" style="margin-bottom:.25rem">
-          <div class="checkbox-cell ${item.done?'checked':''}" onclick="toggleDone(${item.id})"></div>
+        <div data-sel-id="${item.id}" class="today-item${selectMode&&selectedIds.has(item.id)?' sel-item':''}" style="margin-bottom:.25rem" ${selectMode?`onclick="toggleSelect(${item.id})"`:''}>
+          <div class="checkbox-cell ${item.done?'checked':''}" onclick="${selectMode?`event.stopPropagation();toggleSelect(${item.id})`:`toggleDone(${item.id})`}"></div>
           <span class="cat-badge ${item.cat}" style="font-size:.6rem">${catLabel(item.cat)}</span>
           <span style="font-size:.75rem;${item.done?'text-decoration:line-through;opacity:.5':''}">${item.name}</span>
           <button class="btn-icon" onclick="openModal(${item.id})" style="margin-left:auto;font-size:.6rem">✏️</button>
@@ -1515,8 +1537,8 @@ function renderTable(){
   document.getElementById('table-body').innerHTML=fd.map(item=>{
     const isOverdue=item.date<today&&!item.done&&item.cat!=='descanso';
     const linksHtml=(item.links||[]).map(l=>l.url?`<a href="${l.url}" target="_blank" title="${l.label||l.url}">🔗${l.label?` ${l.label}`:''}</a>`:'').join('');
-    return `<tr class="${item.done?'done-row':''}${isOverdue?' overdue-row':''}${item.postponed?' postponed-row':''}">
-      <td><div class="checkbox-cell ${item.done?'checked':''}" onclick="toggleDone(${item.id})"></div></td>
+    return `<tr data-sel-id="${item.id}" class="${item.done?'done-row':''}${isOverdue?' overdue-row':''}${item.postponed?' postponed-row':''}${selectMode&&selectedIds.has(item.id)?' sel-item':''}" ${selectMode?`onclick="toggleSelect(${item.id})"`:''}>
+      <td><div class="checkbox-cell ${item.done?'checked':''}" onclick="${selectMode?`event.stopPropagation();toggleSelect(${item.id})`:`toggleDone(${item.id})`}"></div></td>
       <td style="white-space:nowrap;font-size:.65rem${isOverdue?';color:var(--danger)':''}">${(item.date||'').slice(0,10)}${isOverdue?' ⚠️':''}</td>
       <td><span class="cat-badge ${item.cat}">${catLabel(item.cat)}</span></td>
       <td><div class="edit-cell" contenteditable="true" onblur="saveField(${item.id},'name',this.innerText)" style="min-width:130px">${item.name}</div></td>
@@ -1552,8 +1574,8 @@ function renderWeekly(){
       <div class="week-body open" id="${wid}">
         ${items.map(item=>{
           const isOverdue=item.date<today&&!item.done&&item.cat!=='descanso';
-          return `<div class="week-item${item.done?' done':''}${isOverdue?' overdue':''}${item.postponed?' postponed-item':''}">
-            <div class="checkbox-cell ${item.done?'checked':''}" onclick="toggleDone(${item.id})"></div>
+          return `<div data-sel-id="${item.id}" class="week-item${item.done?' done':''}${isOverdue?' overdue':''}${item.postponed?' postponed-item':''}${selectMode&&selectedIds.has(item.id)?' sel-item':''}" ${selectMode?`onclick="toggleSelect(${item.id})"`:''}>
+            <div class="checkbox-cell ${item.done?'checked':''}" onclick="${selectMode?`event.stopPropagation();toggleSelect(${item.id})`:`toggleDone(${item.id})`}"></div>
             <div class="week-item-date">${(item.date||''). slice(0,10).slice(5)}</div>
             <div>
               <span class="cat-badge ${item.cat}" style="font-size:.6rem">${catLabel(item.cat)}</span>
@@ -1575,6 +1597,51 @@ function renderWeekly(){
 function toggleWeek(id){
   document.getElementById(id).classList.toggle('open');
   document.getElementById('t-'+id).classList.toggle('open');
+}
+
+// ── MULTI-SELECT & MOVE ──
+let selectMode=false;
+const selectedIds=new Set();
+
+function toggleSelectMode(){
+  selectMode=!selectMode;
+  if(!selectMode){selectedIds.clear();}
+  const btn=document.getElementById('btn-select-mode');
+  btn.classList.toggle('select-mode',selectMode);
+  btn.textContent=selectMode?'✕ Salir selección':'☑ Seleccionar';
+  updateMoveBar();
+  renderToday();renderTable();renderWeekly();
+}
+
+function toggleSelect(id){
+  if(selectedIds.has(id))selectedIds.delete(id);else selectedIds.add(id);
+  updateMoveBar();
+  // Toggle highlight on the element without full re-render for speed
+  document.querySelectorAll(`[data-sel-id="${id}"]`).forEach(el=>
+    el.classList.toggle('sel-item',selectedIds.has(id)));
+}
+
+function updateMoveBar(){
+  const bar=document.getElementById('move-bar');
+  const n=selectedIds.size;
+  if(!selectMode||n===0){bar.classList.add('hidden');return;}
+  bar.classList.remove('hidden');
+  document.getElementById('move-bar-count').textContent=
+    n+' actividad'+(n>1?'es':'')+' seleccionada'+(n>1?'s':'');
+}
+
+async function moveSelected(){
+  const newDate=document.getElementById('move-date').value;
+  if(!newDate){showStatus('⚠️ Elige una fecha destino','var(--danger)');return;}
+  if(selectedIds.size===0)return;
+  const affected=[];
+  data.forEach(d=>{
+    if(selectedIds.has(d.id)){d.date=newDate;affected.push(d);}
+  });
+  showStatus(`📅 ${affected.length} actividad${affected.length>1?'es':''} movida${affected.length>1?'s':''} a ${newDate}`,'var(--aieng)');
+  toggleSelectMode();
+  updateStats();renderToday();renderCalendar();renderTable();renderWeekly();
+  for(const item of affected) await saveRow(item);
 }
 
 // ── INTERACTIONS ──
