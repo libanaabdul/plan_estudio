@@ -1183,10 +1183,12 @@ async function saveData(){
   // Only used for full resets - per-row saves use saveRow/deleteRow
   showStatus('💾 Guardando plan completo...','var(--aws)');
   try{
+    // Deduplicate by id before sending — DynamoDB rejects duplicate keys in a batch
+    const unique=[...new Map(data.map(d=>[String(d.id),d])).values()];
     const CHUNK=50;
     const headers=await _authHeaders();
-    for(let i=0;i<data.length;i+=CHUNK){
-      const res=await fetch(API_URL,{method:'POST',headers,body:JSON.stringify({action:'saveAll',rows:data.slice(i,i+CHUNK)})});
+    for(let i=0;i<unique.length;i+=CHUNK){
+      const res=await fetch(API_URL,{method:'POST',headers,body:JSON.stringify({action:'saveAll',rows:unique.slice(i,i+CHUNK)})});
       if(!res.ok) throw new Error('HTTP '+res.status);
     }
     showStatus('✅ Guardado','var(--english)');
