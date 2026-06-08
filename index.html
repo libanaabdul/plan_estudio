@@ -573,6 +573,7 @@ tr.postponed-row{border-left:3px solid var(--postponed);}
 <!-- FOOTER -->
 <div class="footer">
   <button class="btn btn-danger btn-sm" onclick="resetData()">↺ Resetear plan</button>
+  <button class="btn btn-danger btn-sm" onclick="purgeAndReset()" style="opacity:.7">🗑 Purgar BD y reiniciar</button>
   <button class="btn btn-secondary btn-sm" onclick="exportData()">⬇ Exportar backup</button>
   <button class="btn btn-secondary btn-sm" onclick="document.getElementById('import-input').click()">⬆ Importar backup</button>
   <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(event)">
@@ -1999,6 +2000,25 @@ function resetData(){
   if(!confirm('¿Resetear al plan original? Perderás todos los cambios y el progreso.'))return;
   initFromDefault();
   updateStats();renderToday();renderCalendar();renderTable();renderWeekly();saveData();
+}
+
+async function purgeAndReset(){
+  if(!confirm('⚠️ Esto borra TODA la base de datos y reinicia desde cero.\n¿Continuar?'))return;
+  showStatus('🗑 Borrando base de datos...','var(--danger)');
+  try{
+    const res=await fetch(API_URL,{method:'POST',headers:await _authHeaders(),
+      body:JSON.stringify({action:'deleteAll'})});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const r=await res.json();
+    showStatus(`🗑 ${r.deleted} entradas eliminadas. Reiniciando...`,'var(--danger)');
+    localStorage.removeItem('studyplan_backup');
+    initFromDefault();
+    await saveData();
+    updateStats();renderToday();renderCalendar();renderTable();renderWeekly();
+    showStatus('✅ Base de datos limpia e inicializada desde cero','var(--aieng)');
+  }catch(e){
+    showStatus('❌ Error al purgar: '+e.message,'var(--danger)');
+  }
 }
 
 // ── INIT ──
