@@ -119,6 +119,22 @@ def lambda_handler(event, _context):
             table.delete_item(Key={"id": item_id})
             return ok({"ok": True})
 
+        if action == "deleteAll":
+            scan_kwargs = {}
+            deleted = 0
+            while True:
+                resp = table.scan(**scan_kwargs)
+                items = resp.get("Items", [])
+                if items:
+                    with table.batch_writer() as batch:
+                        for item in items:
+                            batch.delete_item(Key={"id": item["id"]})
+                    deleted += len(items)
+                if "LastEvaluatedKey" not in resp:
+                    break
+                scan_kwargs["ExclusiveStartKey"] = resp["LastEvaluatedKey"]
+            return ok({"ok": True, "deleted": deleted})
+
         return err(f"Unknown action: {action}")
 
     return err(f"Method not allowed: {method}", 405)
