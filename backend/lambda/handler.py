@@ -54,17 +54,28 @@ def _normalise(item: dict) -> dict:
     """Ensure id is always stored as a string (DynamoDB PK)."""
     item = dict(item)
     item["id"] = str(item.get("id", ""))
-    # Store booleans natively
+    # DynamoDB rejects empty strings — remove any empty-string attributes
+    item = {k: v for k, v in item.items() if v != ""}
+    # Store booleans natively (re-set after possible removal above)
     for key in ("done", "postponed"):
         val = item.get(key, False)
         if isinstance(val, str):
             item[key] = val.lower() in ("true", "1", "yes")
+        else:
+            item[key] = bool(val)
     return item
 
 
 # ── handler ──────────────────────────────────────────────────────────────────
 
 def lambda_handler(event, _context):
+    try:
+        return _handle(event)
+    except Exception as exc:
+        return err(f"Internal error: {exc}", 500)
+
+
+def _handle(event):
     method = event.get("httpMethod", "GET")
     qs = event.get("queryStringParameters") or {}
 
@@ -120,7 +131,7 @@ def lambda_handler(event, _context):
             return ok({"ok": True})
 
         if action == "deleteAll":
-            scan_kwargs = {}
+            scan_kwargs = {"ProjectionExpression": "id"}
             deleted = 0
             while True:
                 resp = table.scan(**scan_kwargs)
