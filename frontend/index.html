@@ -1219,6 +1219,27 @@ async function deleteRow(id){
   }
 }
 
+function deduplicateData(rows){
+  // Two entries are the same logical activity if they share cat+week+topics prefix.
+  // When duplicates exist, keep the one with the most progress (done=true, notes, realDur).
+  const seen=new Map();
+  rows.forEach(r=>{
+    const key=(r.cat||'')+'|'+(r.week||'')+'|'+(r.topics||'').slice(0,40)+'|'+(r.name||'').slice(0,30);
+    if(!seen.has(key)){
+      seen.set(key,r);
+    } else {
+      const prev=seen.get(key);
+      // Keep whichever has more progress
+      const score=x=>(x.done?10:0)+(x.notes?3:0)+(x.realDur?2:0);
+      if(score(r)>score(prev)) seen.set(key,r);
+    }
+  });
+  const result=[...seen.values()];
+  if(result.length<rows.length)
+    console.log(`[dedup] Removed ${rows.length-result.length} duplicate entries`);
+  return result;
+}
+
 async function loadData(){
   try{
     const res=await fetch(API_URL+'?action=getAll',{headers:await _authHeaders()});
@@ -1240,6 +1261,7 @@ async function loadData(){
         done:r.done==='TRUE'||r.done===true||r.done==='true',
         postponed:r.postponed==='TRUE'||r.postponed===true||r.postponed==='true'
       }));
+      data=deduplicateData(data);
       localStorage.setItem('studyplan_backup',JSON.stringify(data));
       await mergeAIEngEntries();
       await migrateDates2026();
