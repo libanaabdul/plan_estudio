@@ -1226,7 +1226,7 @@ async function loadData(){
     const rows=await res.json();
     if(rows&&rows.length>0){
       data=rows.map((r,i)=>({
-        id:Number(r.id)||i,
+        id:Number(r.id)||i+1,
         name:r.name||'',
         date:(r.date||'').toString().slice(0,10),
         cat:r.cat||'descanso',
@@ -1242,6 +1242,7 @@ async function loadData(){
       }));
       localStorage.setItem('studyplan_backup',JSON.stringify(data));
       await mergeAIEngEntries();
+      await migrateDates2026();
     } else {
       // DynamoDB vacío — usar localStorage si existe, si no inicializar por defecto
       const backup=localStorage.getItem('studyplan_backup');
@@ -1249,22 +1250,56 @@ async function loadData(){
         data=JSON.parse(backup);
         data.forEach(r=>{if(r.date)r.date=(r.date||'').toString().slice(0,10);});
         showStatus('🔄 Restaurando datos desde backup local...','var(--terraform)');
-        await saveData(); // Re-sincronizar backup local a DynamoDB
+        await saveData();
       } else {
+        // Primera vez: inicializar y guardar
         initFromDefault();
         await saveData();
       }
     }
   }catch(e){
+    console.error('[loadData]',e.message);
     const backup=localStorage.getItem('studyplan_backup');
     if(backup){
       data=JSON.parse(backup);
       data.forEach(r=>{if(r.date)r.date=(r.date||'').toString().slice(0,10);});
       showStatus('⚠️ Sin conexión — usando backup local','var(--aws)');
     } else {
+      // Sin red y sin backup: mostrar plan en memoria pero NO sobrescribir DynamoDB
       initFromDefault();
+      showStatus('⚠️ Sin conexión y sin backup local — los cambios no se guardarán','var(--danger)');
     }
   }
+}
+
+// Migra fechas viejas (< 2026-06-10) a la distribución 1 cert/día + 1 aieng/día.
+// Preserva done, notes, realDur y cualquier otro progreso.
+async function migrateDates2026(){
+  const CERT_CATS=new Set(['aws','ai','terraform','cca','saa','repaso','english']);
+  const needsMigration=data.some(d=>CERT_CATS.has(d.cat)&&d.date<'2026-06-10');
+  if(!needsMigration) return;
+
+  const examDates=new Set(data.filter(d=>d.cat==='examen').map(d=>d.date));
+
+  const certEntries=[...data.filter(d=>CERT_CATS.has(d.cat))].sort((a,b)=>a.date.localeCompare(b.date));
+  const aiengEntries=[...data.filter(d=>d.cat==='aieng')].sort((a,b)=>a.date.localeCompare(b.date));
+
+  // Generar días de estudio (Lun-Sáb, sin domingos ni días de examen)
+  const needed=Math.max(certEntries.length,aiengEntries.length);
+  const studyDays=[];
+  const cur=new Date('2026-06-10');
+  while(studyDays.length<needed){
+    const ds=cur.toISOString().slice(0,10);
+    if(cur.getDay()!==0&&!examDates.has(ds)) studyDays.push(ds);
+    cur.setDate(cur.getDate()+1);
+  }
+
+  certEntries.forEach((item,i)=>{item.date=studyDays[i];});
+  aiengEntries.forEach((item,i)=>{item.date=studyDays[i];});
+
+  localStorage.setItem('studyplan_backup',JSON.stringify(data));
+  await saveData();
+  showStatus('📅 Plan actualizado a nueva distribución (3 actividades/día)','var(--aieng)');
 }
 
 function safeParseLinks(val){
