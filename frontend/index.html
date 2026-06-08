@@ -1183,13 +1183,16 @@ async function saveData(){
   // Only used for full resets - per-row saves use saveRow/deleteRow
   showStatus('💾 Guardando plan completo...','var(--aws)');
   try{
-    const res=await fetch(API_URL,{method:'POST',headers:await _authHeaders(),body:JSON.stringify({action:'saveAll',rows:data})});
-    if(!res.ok) throw new Error('HTTP '+res.status);
+    const CHUNK=50;
+    const headers=await _authHeaders();
+    for(let i=0;i<data.length;i+=CHUNK){
+      const res=await fetch(API_URL,{method:'POST',headers,body:JSON.stringify({action:'saveAll',rows:data.slice(i,i+CHUNK)})});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+    }
     showStatus('✅ Guardado','var(--english)');
     localStorage.setItem('studyplan_backup',JSON.stringify(data));
   }catch(e){
     showStatus('❌ Error al guardar en la nube — backup local activo','#f87171');
-    // Solo guardar en localStorage si los datos son válidos (no el reset por defecto)
     if(data.length>0) localStorage.setItem('studyplan_backup',JSON.stringify(data));
   }
 }
