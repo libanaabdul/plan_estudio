@@ -1142,7 +1142,7 @@ const BABY_DAILY=[
 
 let data=[];
 let activeFilter='all';
-let currentMonth=new Date(2026,5,10);
+let currentMonth=new Date(2026,5,15);
 let editingId=null;
 let focusId=null;
 let linkRows=[];
@@ -1298,20 +1298,20 @@ async function loadData(){
   }
 }
 
-// Migra fechas viejas a distribución 1cert/día + 1aieng/día desde 2026-06-10.
+// Migra fechas viejas a distribución 1cert/día + 1aieng/día desde 2026-06-15.
 // Retorna true si guardó en DynamoDB.
 async function migrateDates2026(){
   const CERT_CATS=new Set(['aws','ai','terraform','cca','saa','repaso','english']);
 
   // Contar cuántos cert/aieng esperamos según INITIAL
-  const EXPECTED_CERT=INITIAL.filter(d=>CERT_CATS.has(d.cat)).length;   // 169
-  const EXPECTED_AIENG=INITIAL.filter(d=>d.cat==='aieng').length;        // 138
+  const EXPECTED_CERT=INITIAL.filter(d=>CERT_CATS.has(d.cat)).length;
+  const EXPECTED_AIENG=INITIAL.filter(d=>d.cat==='aieng').length;
 
   const certEntries=[...data.filter(d=>CERT_CATS.has(d.cat))].sort((a,b)=>a.date.localeCompare(b.date));
   const aiengEntries=[...data.filter(d=>d.cat==='aieng')].sort((a,b)=>a.date.localeCompare(b.date));
 
-  const hasOldCert =certEntries.some(d=>d.date<'2026-06-10');
-  const hasOldBaby =data.some(d=>d.cat==='baby'&&d.date<'2026-06-10');
+  const hasOldCert =certEntries.some(d=>d.date<'2026-06-15');
+  const hasOldBaby =data.some(d=>d.cat==='baby'&&d.date<'2026-06-15');
   const certDup    =certEntries.length>EXPECTED_CERT;
   const aiengDup   =aiengEntries.length>EXPECTED_AIENG;
 
@@ -1319,10 +1319,10 @@ async function migrateDates2026(){
 
   const examDates=new Set(data.filter(d=>d.cat==='examen').map(d=>d.date));
 
-  // Redistribuir cert y aieng
+  // Redistribuir cert y aieng: 1 cert + 1 aieng por día de estudio (lun-sáb, sin exámenes)
   const needed=Math.max(certEntries.length,aiengEntries.length);
   const studyDays=[];
-  const cur=new Date('2026-06-10');
+  const cur=new Date('2026-06-15');
   while(studyDays.length<needed){
     const ds=cur.toISOString().slice(0,10);
     if(cur.getDay()!==0&&!examDates.has(ds)) studyDays.push(ds);
@@ -1331,14 +1331,13 @@ async function migrateDates2026(){
   certEntries.forEach((item,i)=>{item.date=studyDays[i];});
   aiengEntries.forEach((item,i)=>{item.date=studyDays[i];});
 
-  // Mover baby viejos +40 días para alinearlos con el plan actual
+  // Mover baby viejos al inicio del plan
   if(hasOldBaby){
-    data.filter(d=>d.cat==='baby'&&d.date<'2026-06-10').forEach(d=>{
+    data.filter(d=>d.cat==='baby'&&d.date<'2026-06-15').forEach(d=>{
       const old=new Date(d.date);
-      old.setDate(old.getDate()+40);
+      old.setDate(old.getDate()+45);
       const shifted=old.toISOString().slice(0,10);
-      // Never land before the plan start
-      d.date=shifted<'2026-06-10'?'2026-06-10':shifted;
+      d.date=shifted<'2026-06-15'?'2026-06-15':shifted;
     });
   }
 
@@ -1401,7 +1400,7 @@ function addDailyBabyActivities(){
     babyByDate[d.date].push(d.name);
   });
 
-  const startDate=new Date(2026,5,10);  // Jun 10
+  const startDate=new Date(2026,5,15);  // Jun 15
   const endDate=new Date(2026,10,26);   // Nov 26
   let babyIdx=0;
 
