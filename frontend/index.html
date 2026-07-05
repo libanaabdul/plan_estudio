@@ -1803,12 +1803,17 @@ function toggleDone(id){
   }
 }
 
+let _renderDebounce=null;
 function saveField(id,field,val){
   const item=data.find(d=>d.id===id);
   if(!item)return;
   item[field]=val.trim();
   saveRow(item);
-  if(field==='date'){updateStats();renderToday();renderCalendar();renderTable();renderWeekly();}
+  if(field==='date'){
+    updateStats();
+    clearTimeout(_renderDebounce);
+    _renderDebounce=setTimeout(()=>{renderToday();renderCalendar();renderWeekly();},400);
+  }
 }
 
 // ── DRAG & DROP ──
