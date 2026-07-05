@@ -1248,8 +1248,12 @@ async function loadData(){
 }
 
 // Migra fechas — redistribuye undone desde hoy, actualiza fechas de examen.
+// Usa localStorage para garantizar que corre UNA sola vez por dispositivo.
 // Retorna true si guardó en DynamoDB.
+const MIGATION_KEY='studyplan_mig_v4_july2026';
 async function migrateDates2026(){
+  if(localStorage.getItem(MIGATION_KEY)==='done') return false;
+
   const CERT_CATS=new Set(['aws','ai','terraform','cca','saa','repaso','english']);
   const EXPECTED_CERT=INITIAL.filter(d=>CERT_CATS.has(d.cat)).length;
   const EXPECTED_AIENG=INITIAL.filter(d=>d.cat==='aieng').length;
@@ -1263,12 +1267,13 @@ async function migrateDates2026(){
   const certDup       =certEntries.length>EXPECTED_CERT;
   const aiengDup      =aiengEntries.length>EXPECTED_AIENG;
   const aiengNeedsJuly=aiengEntries.some(d=>d.date<'2026-07-01'&&!d.done);
-
-  // Detecta fechas de examen viejas en DynamoDB → migración de julio 2026
   const OLD_EXAM_DATES=new Set(['2026-07-19','2026-08-03','2026-08-27','2026-09-29','2026-11-24']);
   const examNeedsUpdate=data.some(d=>d.cat==='examen'&&OLD_EXAM_DATES.has(d.date));
 
-  if(!hasOldCert&&!hasOldBaby&&!certDup&&!aiengDup&&!aiengNeedsJuly&&!examNeedsUpdate) return false;
+  if(!hasOldCert&&!hasOldBaby&&!certDup&&!aiengDup&&!aiengNeedsJuly&&!examNeedsUpdate){
+    localStorage.setItem(MIGATION_KEY,'done');
+    return false;
+  }
 
   // Actualizar fechas de examen en DynamoDB a nuevos targets
   if(examNeedsUpdate){
@@ -1322,6 +1327,7 @@ async function migrateDates2026(){
 
   localStorage.setItem('studyplan_backup',JSON.stringify(data));
   await saveData();
+  localStorage.setItem(MIGATION_KEY,'done');
   showStatus('📅 Plan sincronizado y limpio','var(--aieng)');
   return true;
 }
@@ -1611,7 +1617,7 @@ function renderTable(){
     const linksHtml=(item.links||[]).map(l=>l.url?`<a href="${l.url}" target="_blank" title="${l.label||l.url}">🔗${l.label?` ${l.label}`:''}</a>`:'').join('');
     return `<tr data-sel-id="${item.id}" class="${item.done?'done-row':''}${isOverdue?' overdue-row':''}${item.postponed?' postponed-row':''}${selectMode&&selectedIds.has(item.id)?' sel-item':''}" ${selectMode?`onclick="toggleSelect(${item.id})"`:''}>
       <td><div class="checkbox-cell ${item.done?'checked':''}" onclick="${selectMode?`event.stopPropagation();toggleSelect(${item.id})`:`toggleDone(${item.id})`}"></div></td>
-      <td style="white-space:nowrap;font-size:.65rem${isOverdue?';color:var(--danger)':''}">${(item.date||'').slice(0,10)}${isOverdue?' ⚠️':''}</td>
+      <td style="white-space:nowrap;font-size:.65rem${isOverdue?';color:var(--danger)':''}"><input type="date" value="${(item.date||'').slice(0,10)}" style="background:none;border:none;color:inherit;font-family:'JetBrains Mono',monospace;font-size:.65rem;width:105px;cursor:pointer" onchange="saveField(${item.id},'date',this.value)">${isOverdue?' ⚠️':''}</td>
       <td><span class="cat-badge ${item.cat}">${catLabel(item.cat)}</span></td>
       <td><div class="edit-cell" contenteditable="true" onblur="saveField(${item.id},'name',this.innerText)" style="min-width:130px">${item.name}</div></td>
       <td><div class="edit-cell" contenteditable="true" onblur="saveField(${item.id},'dur',this.innerText)" style="min-width:45px">${item.dur}</div></td>
