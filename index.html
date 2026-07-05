@@ -1805,7 +1805,10 @@ function toggleDone(id){
 
 function saveField(id,field,val){
   const item=data.find(d=>d.id===id);
-  if(item){item[field]=val.trim();saveRow(item);}
+  if(!item)return;
+  item[field]=val.trim();
+  saveRow(item);
+  if(field==='date'){updateStats();renderToday();renderCalendar();renderTable();renderWeekly();}
 }
 
 // ── DRAG & DROP ──
