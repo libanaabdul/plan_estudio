@@ -1488,8 +1488,7 @@ function renderToday(){
   document.getElementById('today-date-label').textContent=
     `Hoy — ${dayNames[now.getDay()]} ${now.getDate()} de ${monthNames[now.getMonth()]}`;
 
-  // Overdue — aieng excluded (has its own view)
-  const overdue=data.filter(d=>d.date<today&&!d.done&&!d.postponed&&d.cat!=='descanso'&&d.cat!=='aieng');
+  const overdue=data.filter(d=>d.date<today&&!d.done&&!d.postponed&&d.cat!=='descanso');
   const overdueSection=document.getElementById('overdue-section');
   if(overdue.length>0){
     overdueSection.innerHTML=`<div class="overdue-banner">
@@ -1499,7 +1498,7 @@ function renderToday(){
   } else overdueSection.innerHTML='';
 
   // Today activities
-  const todayItems=data.filter(d=>d.date===today&&d.cat!=='aieng'&&(activeFilter==='all'||d.cat===activeFilter));
+  const todayItems=data.filter(d=>d.date===today&&(activeFilter==='all'||d.cat===activeFilter));
   const todayList=document.getElementById('today-list');
   if(todayItems.length===0){
     todayList.innerHTML=`<div class="today-empty">No hay actividades programadas para hoy.<br><span style="font-size:.7rem;color:var(--muted)">Puedes agregar una con el botón + o desde el calendario.</span></div>`;
@@ -1515,7 +1514,7 @@ function renderToday(){
   }
 
   // Tomorrow
-  const tomorrowItems=data.filter(d=>d.date===tomorrow&&d.cat!=='aieng'&&(activeFilter==='all'||d.cat===activeFilter));
+  const tomorrowItems=data.filter(d=>d.date===tomorrow&&(activeFilter==='all'||d.cat===activeFilter));
   document.getElementById('tomorrow-list').innerHTML=tomorrowItems.length===0
     ?`<div class="today-empty" style="font-size:.72rem">Sin actividades programadas para mañana.</div>`
     :tomorrowItems.map(item=>`
@@ -1531,7 +1530,7 @@ function renderToday(){
   const weekEnd=new Date(weekStart);weekEnd.setDate(weekStart.getDate()+6);
   const weekItems=data.filter(d=>{
     const dd=new Date(d.date);
-    return dd>=weekStart&&dd<=weekEnd&&d.date!==today&&d.date!==tomorrow&&d.cat!=='aieng'&&(activeFilter==='all'||d.cat===activeFilter);
+    return dd>=weekStart&&dd<=weekEnd&&d.date!==today&&d.date!==tomorrow&&(activeFilter==='all'||d.cat===activeFilter);
   });
   const weekDiv=document.getElementById('week-today-list');
   if(weekItems.length===0){weekDiv.innerHTML='';return;}
@@ -1552,7 +1551,7 @@ function renderToday(){
 
 function rescheduleOverdue(){
   const today=getTodayStr();
-  const overdue=data.filter(d=>d.date<today&&!d.done&&!d.postponed&&d.cat!=='descanso'&&d.cat!=='aieng');
+  const overdue=data.filter(d=>d.date<today&&!d.done&&!d.postponed&&d.cat!=='descanso');
   if(overdue.length===0){showStatus('✅ Sin actividades atrasadas','var(--english)');return;}
   overdue.forEach(item=>item.date=today);
   showStatus(`📅 ${overdue.length} actividades movidas a hoy`,'var(--terraform)');
@@ -1803,12 +1802,17 @@ function toggleDone(id){
   }
 }
 
+let _renderDebounce=null;
 function saveField(id,field,val){
   const item=data.find(d=>d.id===id);
   if(!item)return;
   item[field]=val.trim();
   saveRow(item);
-  if(field==='date'){updateStats();renderToday();renderCalendar();renderTable();renderWeekly();}
+  if(field==='date'){
+    updateStats();
+    clearTimeout(_renderDebounce);
+    _renderDebounce=setTimeout(()=>{renderToday();renderCalendar();renderWeekly();},400);
+  }
 }
 
 // ── DRAG & DROP ──
