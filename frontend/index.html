@@ -388,6 +388,7 @@ tr.postponed-row{border-left:3px solid var(--postponed);}
   <button class="nav-btn" onclick="switchView('calendar',this)">📅 Calendario</button>
   <button class="nav-btn" onclick="switchView('table',this)">📋 Tabla</button>
   <button class="nav-btn" onclick="switchView('weekly',this)">📚 Semanas</button>
+  <button class="nav-btn" onclick="switchView('aieng',this)">🧠 AI Eng</button>
 </div>
 
 <!-- FILTERS -->
@@ -464,6 +465,13 @@ tr.postponed-row{border-left:3px solid var(--postponed);}
 <!-- WEEKLY VIEW -->
 <div class="view" id="view-weekly">
   <div id="weekly-body"></div>
+  <div style="padding-top:1rem"><button class="btn btn-primary" onclick="openNewModal()">+ Agregar actividad</button></div>
+</div>
+
+<!-- AI ENG VIEW -->
+<div class="view" id="view-aieng">
+  <div id="aieng-header" style="margin-bottom:1.2rem"></div>
+  <div id="aieng-body"></div>
   <div style="padding-top:1rem"><button class="btn btn-primary" onclick="openNewModal()">+ Agregar actividad</button></div>
 </div>
 
@@ -1310,26 +1318,40 @@ async function migrateDates2026(){
   const certEntries=[...data.filter(d=>CERT_CATS.has(d.cat))].sort((a,b)=>a.date.localeCompare(b.date));
   const aiengEntries=[...data.filter(d=>d.cat==='aieng')].sort((a,b)=>a.date.localeCompare(b.date));
 
-  const hasOldCert =certEntries.some(d=>d.date<'2026-06-15');
-  const hasOldBaby =data.some(d=>d.cat==='baby'&&d.date<'2026-06-15');
-  const certDup    =certEntries.length>EXPECTED_CERT;
-  const aiengDup   =aiengEntries.length>EXPECTED_AIENG;
+  const hasOldCert    =certEntries.some(d=>d.date<'2026-06-15');
+  const hasOldBaby    =data.some(d=>d.cat==='baby'&&d.date<'2026-06-15');
+  const certDup       =certEntries.length>EXPECTED_CERT;
+  const aiengDup      =aiengEntries.length>EXPECTED_AIENG;
+  const aiengNeedsJuly=aiengEntries.some(d=>d.date<'2026-07-01'&&!d.done);
 
-  if(!hasOldCert&&!hasOldBaby&&!certDup&&!aiengDup) return false;
+  if(!hasOldCert&&!hasOldBaby&&!certDup&&!aiengDup&&!aiengNeedsJuly) return false;
 
   const examDates=new Set(data.filter(d=>d.cat==='examen').map(d=>d.date));
 
-  // Redistribuir cert y aieng: 1 cert + 1 aieng por día de estudio (lun-sáb, sin exámenes)
-  const needed=Math.max(certEntries.length,aiengEntries.length);
-  const studyDays=[];
-  const cur=new Date('2026-06-15');
-  while(studyDays.length<needed){
-    const ds=cur.toISOString().slice(0,10);
-    if(cur.getDay()!==0&&!examDates.has(ds)) studyDays.push(ds);
-    cur.setDate(cur.getDate()+1);
+  // Redistribuir cert: 1 cert/día lun-sáb desde 2026-06-15
+  if(hasOldCert||certDup){
+    const studyDays=[];
+    const cur=new Date('2026-06-15');
+    while(studyDays.length<certEntries.length){
+      const ds=cur.toISOString().slice(0,10);
+      if(cur.getDay()!==0&&!examDates.has(ds)) studyDays.push(ds);
+      cur.setDate(cur.getDate()+1);
+    }
+    certEntries.forEach((item,i)=>{item.date=studyDays[i];});
   }
-  certEntries.forEach((item,i)=>{item.date=studyDays[i];});
-  aiengEntries.forEach((item,i)=>{item.date=studyDays[i];});
+
+  // Redistribuir aieng: 1 aieng/día lun-sáb desde 2026-07-01, solo los no hechos
+  if(aiengNeedsJuly||aiengDup){
+    const undoneAieng=aiengEntries.filter(d=>!d.done);
+    const aiengDays=[];
+    const cur2=new Date('2026-07-01');
+    while(aiengDays.length<undoneAieng.length){
+      const ds=cur2.toISOString().slice(0,10);
+      if(cur2.getDay()!==0&&!examDates.has(ds)) aiengDays.push(ds);
+      cur2.setDate(cur2.getDate()+1);
+    }
+    undoneAieng.forEach((item,i)=>{item.date=aiengDays[i];});
+  }
 
   // Mover baby viejos al inicio del plan
   if(hasOldBaby){
@@ -1481,6 +1503,7 @@ function switchView(v,btn){
   if(v==='calendar')renderCalendar();
   if(v==='table')renderTable();
   if(v==='weekly')renderWeekly();
+  if(v==='aieng')renderAiEng();
 }
 
 function setFilter(f,btn){
@@ -1502,8 +1525,8 @@ function renderToday(){
   document.getElementById('today-date-label').textContent=
     `Hoy — ${dayNames[now.getDay()]} ${now.getDate()} de ${monthNames[now.getMonth()]}`;
 
-  // Overdue
-  const overdue=data.filter(d=>d.date<today&&!d.done&&!d.postponed&&d.cat!=='descanso');
+  // Overdue — aieng excluded (has its own view)
+  const overdue=data.filter(d=>d.date<today&&!d.done&&!d.postponed&&d.cat!=='descanso'&&d.cat!=='aieng');
   const overdueSection=document.getElementById('overdue-section');
   if(overdue.length>0){
     overdueSection.innerHTML=`<div class="overdue-banner">
@@ -1513,7 +1536,7 @@ function renderToday(){
   } else overdueSection.innerHTML='';
 
   // Today activities
-  const todayItems=data.filter(d=>d.date===today&&(activeFilter==='all'||d.cat===activeFilter));
+  const todayItems=data.filter(d=>d.date===today&&d.cat!=='aieng'&&(activeFilter==='all'||d.cat===activeFilter));
   const todayList=document.getElementById('today-list');
   if(todayItems.length===0){
     todayList.innerHTML=`<div class="today-empty">No hay actividades programadas para hoy.<br><span style="font-size:.7rem;color:var(--muted)">Puedes agregar una con el botón + o desde el calendario.</span></div>`;
@@ -1530,7 +1553,7 @@ function renderToday(){
   }
 
   // Tomorrow
-  const tomorrowItems=data.filter(d=>d.date===tomorrow&&(activeFilter==='all'||d.cat===activeFilter));
+  const tomorrowItems=data.filter(d=>d.date===tomorrow&&d.cat!=='aieng'&&(activeFilter==='all'||d.cat===activeFilter));
   document.getElementById('tomorrow-list').innerHTML=tomorrowItems.length===0
     ?`<div class="today-empty" style="font-size:.72rem">Sin actividades programadas para mañana.</div>`
     :tomorrowItems.map(item=>`
@@ -1546,7 +1569,7 @@ function renderToday(){
   const weekEnd=new Date(weekStart);weekEnd.setDate(weekStart.getDate()+6);
   const weekItems=data.filter(d=>{
     const dd=new Date(d.date);
-    return dd>=weekStart&&dd<=weekEnd&&d.date!==today&&d.date!==tomorrow&&(activeFilter==='all'||d.cat===activeFilter);
+    return dd>=weekStart&&dd<=weekEnd&&d.date!==today&&d.date!==tomorrow&&d.cat!=='aieng'&&(activeFilter==='all'||d.cat===activeFilter);
   });
   const weekDiv=document.getElementById('week-today-list');
   if(weekItems.length===0){weekDiv.innerHTML='';return;}
@@ -1567,7 +1590,7 @@ function renderToday(){
 
 function rescheduleOverdue(){
   const today=getTodayStr();
-  const overdue=data.filter(d=>d.date<today&&!d.done&&!d.postponed&&d.cat!=='descanso');
+  const overdue=data.filter(d=>d.date<today&&!d.done&&!d.postponed&&d.cat!=='descanso'&&d.cat!=='aieng');
   if(overdue.length===0){showStatus('✅ Sin actividades atrasadas','var(--english)');return;}
   overdue.forEach(item=>item.date=today);
   showStatus(`📅 ${overdue.length} actividades movidas a hoy`,'var(--terraform)');
@@ -1687,6 +1710,76 @@ function renderWeekly(){
   }).join('');
 }
 
+// ── AI ENGINEER VIEW ──
+function renderAiEng(){
+  const items=data.filter(d=>d.cat==='aieng').sort((a,b)=>a.date.localeCompare(b.date));
+  const totalDone=items.filter(d=>d.done).length;
+  const total=items.length;
+  const pct=total?Math.round(totalDone/total*100):0;
+  const today=getTodayStr();
+
+  document.getElementById('aieng-header').innerHTML=`
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1rem 1.4rem;display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--aieng)">🧠 AI Engineer</div>
+        <div style="font-size:.65rem;color:var(--muted);margin-top:.2rem">${totalDone} de ${total} actividades completadas</div>
+      </div>
+      <div style="flex:1;min-width:120px">
+        <div style="background:var(--surface2);border-radius:6px;height:8px;overflow:hidden">
+          <div style="width:${pct}%;height:100%;background:var(--aieng);border-radius:6px;transition:width .4s"></div>
+        </div>
+        <div style="font-size:.65rem;color:var(--aieng);margin-top:.3rem;text-align:right">${pct}%</div>
+      </div>
+    </div>`;
+
+  if(items.length===0){
+    document.getElementById('aieng-body').innerHTML=`<div class="today-empty">No hay actividades AI Engineer en el plan.</div>`;
+    return;
+  }
+
+  const byWeek={};
+  items.forEach(item=>{
+    const w=item.week||'Sin semana';
+    if(!byWeek[w])byWeek[w]=[];
+    byWeek[w].push(item);
+  });
+
+  document.getElementById('aieng-body').innerHTML=Object.entries(byWeek).map(([week,witems])=>{
+    const wDone=witems.filter(i=>i.done).length;
+    const wTotal=witems.length;
+    const wPct=wTotal?Math.round(wDone/wTotal*100):0;
+    const wid='aieng-'+week.replace(/[^a-zA-Z0-9]/g,'-');
+    const firstDate=witems[0].date;
+    const isActive=firstDate>=today||witems.some(i=>i.date===today);
+    const isPast=witems.every(i=>i.date<today);
+    return `<div class="week-section">
+      <div class="week-header" onclick="toggleWeek('${wid}')">
+        <span class="week-toggle open" id="t-${wid}">▼</span>
+        <span class="week-header-title" style="color:${isPast&&wDone<wTotal?'var(--danger)':isActive?'var(--aieng)':'inherit'}">${week}</span>
+        <div class="week-progress">
+          <div style="font-size:.65rem">${wDone}/${wTotal} · ${firstDate}</div>
+          <div class="week-progress-bar"><div class="week-progress-fill" style="width:${wPct}%;background:var(--aieng)"></div></div>
+        </div>
+      </div>
+      <div class="week-body open" id="${wid}">
+        ${witems.map(item=>`
+          <div class="week-item${item.done?' done':''}" style="border-left-color:var(--aieng)">
+            <div class="checkbox-cell ${item.done?'checked':''}" onclick="toggleDone(${item.id})"></div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:.78rem;${item.done?'text-decoration:line-through;opacity:.5':''}">
+                ${item.name}
+                <span style="font-size:.6rem;color:var(--muted);margin-left:.4rem">${item.date}</span>
+              </div>
+              ${item.topics?`<div class="week-item-topics">${item.topics}</div>`:''}
+              ${item.notes?`<div style="font-size:.62rem;color:var(--muted);margin-top:.2rem;font-style:italic">${item.notes}</div>`:''}
+            </div>
+            <button class="btn-icon" onclick="openModal(${item.id})">✏️</button>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function toggleWeek(id){
   document.getElementById(id).classList.toggle('open');
   document.getElementById('t-'+id).classList.toggle('open');
@@ -1744,6 +1837,7 @@ function toggleDone(id){
     item.done=!item.done;
     if(item.done) item.postponed=false;
     updateStats();renderToday();renderCalendar();renderTable();renderWeekly();
+    if(document.getElementById('view-aieng').classList.contains('active'))renderAiEng();
     saveRow(item);
   }
 }
