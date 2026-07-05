@@ -213,28 +213,6 @@ tr.postponed-row{border-left:3px solid var(--postponed);}
 .week-item-name{font-size:.78rem;line-height:1.4;margin-top:.2rem;}
 .week-item-topics{font-size:.68rem;color:var(--muted);line-height:1.5;}
 
-/* POMODORO */
-.pomo-wrap{position:fixed;bottom:1.5rem;left:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1rem 1.2rem;width:220px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.4);display:none;}
-.pomo-wrap.open{display:block;animation:fadeUp .3s ease both;}
-.pomo-title{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.5rem;}
-.pomo-time{font-family:'Playfair Display',serif;font-size:2.4rem;font-weight:700;text-align:center;letter-spacing:.05em;margin-bottom:.6rem;}
-.pomo-time.work{color:var(--terraform);}
-.pomo-time.rest{color:var(--english);}
-.pomo-label{font-size:.62rem;text-align:center;color:var(--muted);margin-bottom:.8rem;text-transform:uppercase;letter-spacing:.08em;}
-.pomo-btns{display:flex;gap:.4rem;justify-content:center;}
-.pomo-count{font-size:.6rem;color:var(--muted);text-align:center;margin-top:.5rem;}
-
-/* FOCUS MODE */
-.focus-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:500;align-items:center;justify-content:center;padding:2rem;}
-.focus-overlay.open{display:flex;}
-.focus-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2.5rem;max-width:560px;width:100%;animation:fadeUp .3s ease both;}
-.focus-cat{font-size:.65rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:.6rem;}
-.focus-name{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;line-height:1.2;margin-bottom:1rem;}
-.focus-topics{font-size:.82rem;color:var(--muted);line-height:1.7;margin-bottom:1.2rem;white-space:pre-wrap;}
-.focus-links{display:flex;flex-direction:column;gap:.35rem;margin-bottom:1.5rem;}
-.focus-links a{color:var(--terraform);font-size:.75rem;text-decoration:none;}
-.focus-links a:hover{text-decoration:underline;}
-.focus-actions{display:flex;gap:.6rem;flex-wrap:wrap;}
 
 /* MODAL */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(5px);z-index:300;align-items:center;justify-content:center;padding:1rem;}
@@ -276,9 +254,6 @@ tr.postponed-row{border-left:3px solid var(--postponed);}
 /* FAB */
 .fab{position:fixed;bottom:1.5rem;right:1.5rem;width:52px;height:52px;border-radius:50%;background:var(--terraform);border:none;color:#000;font-size:1.5rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(129,140,248,.4);transition:transform .2s;z-index:100;}
 .fab:hover{transform:scale(1.1);}
-.fab-pomo{position:fixed;bottom:1.5rem;left:1.5rem;width:44px;height:44px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.3);transition:transform .2s;z-index:100;}
-.fab-pomo:hover{transform:scale(1.1);}
-
 /* STATUS */
 #status-msg{position:fixed;bottom:5rem;right:1.2rem;padding:.5rem 1rem;border-radius:8px;font-size:.72rem;font-family:'JetBrains Mono',monospace;z-index:999;transition:opacity .4s;pointer-events:none;}
 
@@ -295,7 +270,6 @@ tr.postponed-row{border-left:3px solid var(--postponed);}
   .week-item-date{display:none;}
   .cal-day{min-height:80px;}
   .cal-event{font-size:.62rem;}
-  .pomo-wrap{left:.5rem;bottom:.5rem;width:190px;}
   .modal-row{grid-template-columns:1fr;}
   .fab{bottom:4.5rem;}
 }
@@ -537,39 +511,10 @@ tr.postponed-row{border-left:3px solid var(--postponed);}
     <div class="modal-actions">
       <button class="btn btn-danger btn-sm" id="m-delete" onclick="deleteItem()">Eliminar</button>
       <button class="btn btn-warn btn-sm" id="m-postpone" onclick="postponeItem()">Posponer</button>
-      <button class="btn btn-secondary btn-sm" id="m-focus" onclick="openFocus()">🎯 Modo foco</button>
       <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
       <button class="btn btn-primary" onclick="saveModal()">Guardar</button>
     </div>
   </div>
-</div>
-
-<!-- FOCUS MODE -->
-<div class="focus-overlay" id="focus-overlay" onclick="closeFocusOutside(event)">
-  <div class="focus-card">
-    <div class="focus-cat" id="focus-cat"></div>
-    <div class="focus-name" id="focus-name"></div>
-    <div class="focus-topics" id="focus-topics"></div>
-    <div class="focus-links" id="focus-links"></div>
-    <div class="focus-actions">
-      <button class="btn btn-primary" onclick="markFocusDone()">✅ Marcar completada</button>
-      <button class="btn btn-secondary" onclick="closeFocus()">Cerrar</button>
-    </div>
-  </div>
-</div>
-
-<!-- POMODORO -->
-<button class="fab-pomo" onclick="togglePomo()" title="Pomodoro">🍅</button>
-<div class="pomo-wrap" id="pomo-wrap">
-  <div class="pomo-title">Pomodoro Timer</div>
-  <div class="pomo-time work" id="pomo-time">25:00</div>
-  <div class="pomo-label" id="pomo-label">FOCO</div>
-  <div class="pomo-btns">
-    <button class="btn btn-primary btn-sm" onclick="startPomo()">▶ Iniciar</button>
-    <button class="btn btn-secondary btn-sm" onclick="pausePomo()">⏸</button>
-    <button class="btn btn-secondary btn-sm" onclick="resetPomo()">↺</button>
-  </div>
-  <div class="pomo-count" id="pomo-count">Pomodoros hoy: 0</div>
 </div>
 
 <!-- FAB -->
@@ -1152,11 +1097,7 @@ let data=[];
 let activeFilter='all';
 let currentMonth=new Date(2026,5,15);
 let editingId=null;
-let focusId=null;
 let linkRows=[];
-
-// POMODORO
-let pomoTimer=null,pomoSeconds=25*60,pomoIsWork=true,pomoRunning=false,pomosToday=0;
 
 function getTodayStr(){
   const d=new Date();
@@ -1548,7 +1489,6 @@ function renderToday(){
         <span style="${item.done?'text-decoration:line-through;opacity:.5':''}">${item.name}</span>
         ${item.dur?`<span style="color:var(--muted);font-size:.65rem">⏱${item.dur}</span>`:''}
         <button class="btn-icon" onclick="openModal(${item.id})" style="margin-left:auto">✏️</button>
-        <button class="btn-icon" onclick="openFocusById(${item.id})">🎯</button>
       </div>`).join('');
   }
 
@@ -1916,7 +1856,6 @@ function openModal(id){
   document.getElementById('m-realDur').value=item.realDur||'';
   document.getElementById('m-delete').style.display='inline-block';
   document.getElementById('m-postpone').style.display='inline-block';
-  document.getElementById('m-focus').style.display='inline-block';
   document.getElementById('m-postpone').textContent=item.postponed?'▶ Quitar posponer':'⏸ Posponer';
   document.getElementById('links-section').innerHTML='';
   (item.links||[]).forEach(l=>addLinkRow(l.label,l.url));
@@ -1938,7 +1877,6 @@ function openNewModal(date=''){
   document.getElementById('m-realDur').value='';
   document.getElementById('m-delete').style.display='none';
   document.getElementById('m-postpone').style.display='none';
-  document.getElementById('m-focus').style.display='none';
   document.getElementById('links-section').innerHTML='';
   addLinkRow();
   onCatChange();
@@ -1991,82 +1929,6 @@ function postponeItem(){
     updateStats();renderToday();renderCalendar();renderTable();renderWeekly();closeModal();
     saveRow(item);
   }
-}
-
-// ── FOCUS MODE ──
-function openFocus(){
-  if(editingId===null)return;
-  openFocusById(editingId);
-  closeModal();
-}
-
-function openFocusById(id){
-  const item=data.find(d=>d.id===id);if(!item)return;
-  focusId=id;
-  document.getElementById('focus-cat').textContent=catLabel(item.cat)+' · '+item.date+(item.dur?' · ⏱'+item.dur:'');
-  document.getElementById('focus-name').textContent=item.name;
-  document.getElementById('focus-topics').textContent=item.topics||'Sin temas definidos.';
-  const links=document.getElementById('focus-links');
-  links.innerHTML=(item.links||[]).filter(l=>l.url).map(l=>`<a href="${l.url}" target="_blank">🔗 ${l.label||l.url}</a>`).join('');
-  document.getElementById('focus-overlay').classList.add('open');
-}
-
-function closeFocus(){document.getElementById('focus-overlay').classList.remove('open');focusId=null;}
-function closeFocusOutside(e){if(e.target===document.getElementById('focus-overlay'))closeFocus();}
-
-function markFocusDone(){
-  if(focusId===null)return;
-  const item=data.find(d=>d.id===focusId);
-  if(item){
-    item.done=true;
-    showStatus('✅ ¡Completada!','var(--english)');
-    updateStats();renderToday();renderCalendar();renderTable();renderWeekly();
-    saveRow(item);
-  }
-  closeFocus();
-}
-
-// ── POMODORO ──
-function togglePomo(){
-  const w=document.getElementById('pomo-wrap');
-  w.classList.toggle('open');
-}
-
-function startPomo(){
-  if(pomoRunning)return;
-  pomoRunning=true;
-  pomoTimer=setInterval(()=>{
-    pomoSeconds--;
-    updatePomoDisplay();
-    if(pomoSeconds<=0){
-      clearInterval(pomoTimer);pomoRunning=false;
-      if(pomoIsWork){
-        pomosToday++;
-        document.getElementById('pomo-count').textContent=`Pomodoros hoy: ${pomosToday}`;
-        showStatus('✅ ¡Pomodoro completado! Descansa 5 min','var(--english)');
-        pomoIsWork=false;pomoSeconds=5*60;
-      } else {
-        showStatus('💪 ¡Descanso terminado! A estudiar','var(--terraform)');
-        pomoIsWork=true;pomoSeconds=25*60;
-      }
-      updatePomoDisplay();
-    }
-  },1000);
-}
-
-function pausePomo(){clearInterval(pomoTimer);pomoRunning=false;}
-
-function resetPomo(){
-  clearInterval(pomoTimer);pomoRunning=false;pomoIsWork=true;pomoSeconds=25*60;
-  updatePomoDisplay();
-}
-
-function updatePomoDisplay(){
-  const m=Math.floor(pomoSeconds/60),s=pomoSeconds%60;
-  const timeEl=document.getElementById('pomo-time');
-  timeEl.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  timeEl.className='pomo-time '+(pomoIsWork?'work':'rest');
-  document.getElementById('pomo-label').textContent=pomoIsWork?'FOCO':'DESCANSO';
 }
 
 // ── EXPORT / IMPORT ──
