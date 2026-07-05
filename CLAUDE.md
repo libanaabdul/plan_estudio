@@ -134,6 +134,13 @@ getAll (DynamoDB)
 ### Multi-select
 - Botón "Seleccionar" en la vista diaria para seleccionar actividades y moverlas a otra fecha
 
+### Vista AI Eng (`view-aieng`)
+- Tab propio "🧠 AI Eng" en el nav — separado de la vista Hoy
+- Los ítems `aieng` NO aparecen en Hoy/overdue/mañana/esta semana ni en `rescheduleOverdue`
+- Muestra progress bar global + semanas colapsables con fecha de inicio por semana
+- Usa la misma estructura grid 4 columnas de `.week-item` (checkbox | fecha | name | topics)
+- `toggleDone` llama `renderAiEng()` cuando esa vista está activa
+
 ---
 
 ## Plan de certificaciones
@@ -147,7 +154,8 @@ getAll (DynamoDB)
 | AWS SAA | ~24 Noviembre 2026 |
 | AI Engineer | Octubre 2026 |
 
-**Regla de 3 actividades/día**: máximo 3 por día = 1 baby (obligatoria) + 1 cert + 1 AI Eng.
+**Regla de días cert**: 1 cert/día lunes-sábado desde 2026-06-15.
+**AI Eng es independiente**: 1 aieng/día desde 2026-07-01, en su propia vista. No se mezcla con la vista Hoy.
 
 ---
 
@@ -191,6 +199,10 @@ getAll (DynamoDB)
 - **Fix 1**: timeout subido a 29s en Terraform
 - **Fix 2**: frontend divide en chunks de 50 ítems por request
 
+### week-item grid roto en vistas nuevas
+- **Causa**: `.week-item` usa `grid-template-columns: 26px 82px auto 1fr` (4 cols). Si una vista nueva usa flex o distinto número de hijos, queda visualmente roto.
+- **Fix**: siempre usar exactamente 4 hijos: `checkbox-cell | week-item-date | div(name) | week-item-topics`. Ver `renderAiEng` como referencia.
+
 ---
 
 ## Variables de entorno / Secrets en GitHub
@@ -226,9 +238,10 @@ cd infrastructure && terraform output api_url
 
 ---
 
-## Estado actual (June 15, 2026)
+## Estado actual (July 5, 2026)
 
-- Plan redistribuido para empezar el 2026-06-15
+- Plan cert activo desde 2026-06-15 (Libi estudia Terraform + AWS Cloud Practitioner)
+- AI Engineer separado en su propia vista; migración automática redistribuye a 2026-07-01+
 - Lambda funcional: CORS correcto, strings vacíos filtrados, dedup por ID
 - Frontend: chunks de 50, dedup por ID y por contenido
-- Pendiente: hacer `git push` del commit `e209e7d` (cambio a Jun 15)
+- Último cambio relevante: commit `1e64aeb` — vista AI Eng separada + fechas Julio

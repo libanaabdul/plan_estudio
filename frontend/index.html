@@ -1763,17 +1763,16 @@ function renderAiEng(){
       </div>
       <div class="week-body open" id="${wid}">
         ${witems.map(item=>`
-          <div class="week-item${item.done?' done':''}" style="border-left-color:var(--aieng)">
+          <div class="week-item${item.done?' done':''}" style="border-left:2px solid var(--aieng)">
             <div class="checkbox-cell ${item.done?'checked':''}" onclick="toggleDone(${item.id})"></div>
-            <div style="flex:1;min-width:0">
-              <div style="font-size:.78rem;${item.done?'text-decoration:line-through;opacity:.5':''}">
-                ${item.name}
-                <span style="font-size:.6rem;color:var(--muted);margin-left:.4rem">${item.date}</span>
-              </div>
-              ${item.topics?`<div class="week-item-topics">${item.topics}</div>`:''}
+            <div class="week-item-date">${item.date.slice(5)}</div>
+            <div>
+              <div class="week-item-name">${item.name}</div>
+              ${item.dur?`<div style="font-size:.62rem;color:var(--muted);margin-top:.1rem">⏱ ${item.dur}</div>`:''}
+              ${(item.links||[]).filter(l=>l.url).length?`<div style="margin-top:.2rem;display:flex;gap:.35rem;flex-wrap:wrap">${(item.links||[]).filter(l=>l.url).map(l=>`<a href="${l.url}" target="_blank" style="font-size:.6rem;color:var(--terraform);text-decoration:none">🔗 ${l.label||'Recurso'}</a>`).join('')}</div>`:''}
               ${item.notes?`<div style="font-size:.62rem;color:var(--muted);margin-top:.2rem;font-style:italic">${item.notes}</div>`:''}
             </div>
-            <button class="btn-icon" onclick="openModal(${item.id})">✏️</button>
+            <div class="week-item-topics">${item.topics||''}</div>
           </div>`).join('')}
       </div>
     </div>`;
