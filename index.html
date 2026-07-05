@@ -213,28 +213,6 @@ tr.postponed-row{border-left:3px solid var(--postponed);}
 .week-item-name{font-size:.78rem;line-height:1.4;margin-top:.2rem;}
 .week-item-topics{font-size:.68rem;color:var(--muted);line-height:1.5;}
 
-/* POMODORO */
-.pomo-wrap{position:fixed;bottom:1.5rem;left:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1rem 1.2rem;width:220px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.4);display:none;}
-.pomo-wrap.open{display:block;animation:fadeUp .3s ease both;}
-.pomo-title{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.5rem;}
-.pomo-time{font-family:'Playfair Display',serif;font-size:2.4rem;font-weight:700;text-align:center;letter-spacing:.05em;margin-bottom:.6rem;}
-.pomo-time.work{color:var(--terraform);}
-.pomo-time.rest{color:var(--english);}
-.pomo-label{font-size:.62rem;text-align:center;color:var(--muted);margin-bottom:.8rem;text-transform:uppercase;letter-spacing:.08em;}
-.pomo-btns{display:flex;gap:.4rem;justify-content:center;}
-.pomo-count{font-size:.6rem;color:var(--muted);text-align:center;margin-top:.5rem;}
-
-/* FOCUS MODE */
-.focus-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:500;align-items:center;justify-content:center;padding:2rem;}
-.focus-overlay.open{display:flex;}
-.focus-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2.5rem;max-width:560px;width:100%;animation:fadeUp .3s ease both;}
-.focus-cat{font-size:.65rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:.6rem;}
-.focus-name{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;line-height:1.2;margin-bottom:1rem;}
-.focus-topics{font-size:.82rem;color:var(--muted);line-height:1.7;margin-bottom:1.2rem;white-space:pre-wrap;}
-.focus-links{display:flex;flex-direction:column;gap:.35rem;margin-bottom:1.5rem;}
-.focus-links a{color:var(--terraform);font-size:.75rem;text-decoration:none;}
-.focus-links a:hover{text-decoration:underline;}
-.focus-actions{display:flex;gap:.6rem;flex-wrap:wrap;}
 
 /* MODAL */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(5px);z-index:300;align-items:center;justify-content:center;padding:1rem;}
@@ -276,9 +254,6 @@ tr.postponed-row{border-left:3px solid var(--postponed);}
 /* FAB */
 .fab{position:fixed;bottom:1.5rem;right:1.5rem;width:52px;height:52px;border-radius:50%;background:var(--terraform);border:none;color:#000;font-size:1.5rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(129,140,248,.4);transition:transform .2s;z-index:100;}
 .fab:hover{transform:scale(1.1);}
-.fab-pomo{position:fixed;bottom:1.5rem;left:1.5rem;width:44px;height:44px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.3);transition:transform .2s;z-index:100;}
-.fab-pomo:hover{transform:scale(1.1);}
-
 /* STATUS */
 #status-msg{position:fixed;bottom:5rem;right:1.2rem;padding:.5rem 1rem;border-radius:8px;font-size:.72rem;font-family:'JetBrains Mono',monospace;z-index:999;transition:opacity .4s;pointer-events:none;}
 
@@ -295,7 +270,6 @@ tr.postponed-row{border-left:3px solid var(--postponed);}
   .week-item-date{display:none;}
   .cal-day{min-height:80px;}
   .cal-event{font-size:.62rem;}
-  .pomo-wrap{left:.5rem;bottom:.5rem;width:190px;}
   .modal-row{grid-template-columns:1fr;}
   .fab{bottom:4.5rem;}
 }
@@ -388,6 +362,7 @@ tr.postponed-row{border-left:3px solid var(--postponed);}
   <button class="nav-btn" onclick="switchView('calendar',this)">📅 Calendario</button>
   <button class="nav-btn" onclick="switchView('table',this)">📋 Tabla</button>
   <button class="nav-btn" onclick="switchView('weekly',this)">📚 Semanas</button>
+  <button class="nav-btn" onclick="switchView('aieng',this)">🧠 AI Eng</button>
 </div>
 
 <!-- FILTERS -->
@@ -467,6 +442,13 @@ tr.postponed-row{border-left:3px solid var(--postponed);}
   <div style="padding-top:1rem"><button class="btn btn-primary" onclick="openNewModal()">+ Agregar actividad</button></div>
 </div>
 
+<!-- AI ENG VIEW -->
+<div class="view" id="view-aieng">
+  <div id="aieng-header" style="margin-bottom:1.2rem"></div>
+  <div id="aieng-body"></div>
+  <div style="padding-top:1rem"><button class="btn btn-primary" onclick="openNewModal()">+ Agregar actividad</button></div>
+</div>
+
 <!-- MODAL -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
   <div class="modal">
@@ -529,39 +511,10 @@ tr.postponed-row{border-left:3px solid var(--postponed);}
     <div class="modal-actions">
       <button class="btn btn-danger btn-sm" id="m-delete" onclick="deleteItem()">Eliminar</button>
       <button class="btn btn-warn btn-sm" id="m-postpone" onclick="postponeItem()">Posponer</button>
-      <button class="btn btn-secondary btn-sm" id="m-focus" onclick="openFocus()">🎯 Modo foco</button>
       <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
       <button class="btn btn-primary" onclick="saveModal()">Guardar</button>
     </div>
   </div>
-</div>
-
-<!-- FOCUS MODE -->
-<div class="focus-overlay" id="focus-overlay" onclick="closeFocusOutside(event)">
-  <div class="focus-card">
-    <div class="focus-cat" id="focus-cat"></div>
-    <div class="focus-name" id="focus-name"></div>
-    <div class="focus-topics" id="focus-topics"></div>
-    <div class="focus-links" id="focus-links"></div>
-    <div class="focus-actions">
-      <button class="btn btn-primary" onclick="markFocusDone()">✅ Marcar completada</button>
-      <button class="btn btn-secondary" onclick="closeFocus()">Cerrar</button>
-    </div>
-  </div>
-</div>
-
-<!-- POMODORO -->
-<button class="fab-pomo" onclick="togglePomo()" title="Pomodoro">🍅</button>
-<div class="pomo-wrap" id="pomo-wrap">
-  <div class="pomo-title">Pomodoro Timer</div>
-  <div class="pomo-time work" id="pomo-time">25:00</div>
-  <div class="pomo-label" id="pomo-label">FOCO</div>
-  <div class="pomo-btns">
-    <button class="btn btn-primary btn-sm" onclick="startPomo()">▶ Iniciar</button>
-    <button class="btn btn-secondary btn-sm" onclick="pausePomo()">⏸</button>
-    <button class="btn btn-secondary btn-sm" onclick="resetPomo()">↺</button>
-  </div>
-  <div class="pomo-count" id="pomo-count">Pomodoros hoy: 0</div>
 </div>
 
 <!-- FAB -->
@@ -1144,11 +1097,7 @@ let data=[];
 let activeFilter='all';
 let currentMonth=new Date(2026,5,15);
 let editingId=null;
-let focusId=null;
 let linkRows=[];
-
-// POMODORO
-let pomoTimer=null,pomoSeconds=25*60,pomoIsWork=true,pomoRunning=false,pomosToday=0;
 
 function getTodayStr(){
   const d=new Date();
@@ -1310,26 +1259,40 @@ async function migrateDates2026(){
   const certEntries=[...data.filter(d=>CERT_CATS.has(d.cat))].sort((a,b)=>a.date.localeCompare(b.date));
   const aiengEntries=[...data.filter(d=>d.cat==='aieng')].sort((a,b)=>a.date.localeCompare(b.date));
 
-  const hasOldCert =certEntries.some(d=>d.date<'2026-06-15');
-  const hasOldBaby =data.some(d=>d.cat==='baby'&&d.date<'2026-06-15');
-  const certDup    =certEntries.length>EXPECTED_CERT;
-  const aiengDup   =aiengEntries.length>EXPECTED_AIENG;
+  const hasOldCert    =certEntries.some(d=>d.date<'2026-06-15');
+  const hasOldBaby    =data.some(d=>d.cat==='baby'&&d.date<'2026-06-15');
+  const certDup       =certEntries.length>EXPECTED_CERT;
+  const aiengDup      =aiengEntries.length>EXPECTED_AIENG;
+  const aiengNeedsJuly=aiengEntries.some(d=>d.date<'2026-07-01'&&!d.done);
 
-  if(!hasOldCert&&!hasOldBaby&&!certDup&&!aiengDup) return false;
+  if(!hasOldCert&&!hasOldBaby&&!certDup&&!aiengDup&&!aiengNeedsJuly) return false;
 
   const examDates=new Set(data.filter(d=>d.cat==='examen').map(d=>d.date));
 
-  // Redistribuir cert y aieng: 1 cert + 1 aieng por día de estudio (lun-sáb, sin exámenes)
-  const needed=Math.max(certEntries.length,aiengEntries.length);
-  const studyDays=[];
-  const cur=new Date('2026-06-15');
-  while(studyDays.length<needed){
-    const ds=cur.toISOString().slice(0,10);
-    if(cur.getDay()!==0&&!examDates.has(ds)) studyDays.push(ds);
-    cur.setDate(cur.getDate()+1);
+  // Redistribuir cert: 1 cert/día lun-sáb desde 2026-06-15
+  if(hasOldCert||certDup){
+    const studyDays=[];
+    const cur=new Date('2026-06-15');
+    while(studyDays.length<certEntries.length){
+      const ds=cur.toISOString().slice(0,10);
+      if(cur.getDay()!==0&&!examDates.has(ds)) studyDays.push(ds);
+      cur.setDate(cur.getDate()+1);
+    }
+    certEntries.forEach((item,i)=>{item.date=studyDays[i];});
   }
-  certEntries.forEach((item,i)=>{item.date=studyDays[i];});
-  aiengEntries.forEach((item,i)=>{item.date=studyDays[i];});
+
+  // Redistribuir aieng: 1 aieng/día lun-sáb desde 2026-07-01, solo los no hechos
+  if(aiengNeedsJuly||aiengDup){
+    const undoneAieng=aiengEntries.filter(d=>!d.done);
+    const aiengDays=[];
+    const cur2=new Date('2026-07-01');
+    while(aiengDays.length<undoneAieng.length){
+      const ds=cur2.toISOString().slice(0,10);
+      if(cur2.getDay()!==0&&!examDates.has(ds)) aiengDays.push(ds);
+      cur2.setDate(cur2.getDate()+1);
+    }
+    undoneAieng.forEach((item,i)=>{item.date=aiengDays[i];});
+  }
 
   // Mover baby viejos al inicio del plan
   if(hasOldBaby){
@@ -1481,6 +1444,7 @@ function switchView(v,btn){
   if(v==='calendar')renderCalendar();
   if(v==='table')renderTable();
   if(v==='weekly')renderWeekly();
+  if(v==='aieng')renderAiEng();
 }
 
 function setFilter(f,btn){
@@ -1502,8 +1466,8 @@ function renderToday(){
   document.getElementById('today-date-label').textContent=
     `Hoy — ${dayNames[now.getDay()]} ${now.getDate()} de ${monthNames[now.getMonth()]}`;
 
-  // Overdue
-  const overdue=data.filter(d=>d.date<today&&!d.done&&!d.postponed&&d.cat!=='descanso');
+  // Overdue — aieng excluded (has its own view)
+  const overdue=data.filter(d=>d.date<today&&!d.done&&!d.postponed&&d.cat!=='descanso'&&d.cat!=='aieng');
   const overdueSection=document.getElementById('overdue-section');
   if(overdue.length>0){
     overdueSection.innerHTML=`<div class="overdue-banner">
@@ -1513,7 +1477,7 @@ function renderToday(){
   } else overdueSection.innerHTML='';
 
   // Today activities
-  const todayItems=data.filter(d=>d.date===today&&(activeFilter==='all'||d.cat===activeFilter));
+  const todayItems=data.filter(d=>d.date===today&&d.cat!=='aieng'&&(activeFilter==='all'||d.cat===activeFilter));
   const todayList=document.getElementById('today-list');
   if(todayItems.length===0){
     todayList.innerHTML=`<div class="today-empty">No hay actividades programadas para hoy.<br><span style="font-size:.7rem;color:var(--muted)">Puedes agregar una con el botón + o desde el calendario.</span></div>`;
@@ -1525,12 +1489,11 @@ function renderToday(){
         <span style="${item.done?'text-decoration:line-through;opacity:.5':''}">${item.name}</span>
         ${item.dur?`<span style="color:var(--muted);font-size:.65rem">⏱${item.dur}</span>`:''}
         <button class="btn-icon" onclick="openModal(${item.id})" style="margin-left:auto">✏️</button>
-        <button class="btn-icon" onclick="openFocusById(${item.id})">🎯</button>
       </div>`).join('');
   }
 
   // Tomorrow
-  const tomorrowItems=data.filter(d=>d.date===tomorrow&&(activeFilter==='all'||d.cat===activeFilter));
+  const tomorrowItems=data.filter(d=>d.date===tomorrow&&d.cat!=='aieng'&&(activeFilter==='all'||d.cat===activeFilter));
   document.getElementById('tomorrow-list').innerHTML=tomorrowItems.length===0
     ?`<div class="today-empty" style="font-size:.72rem">Sin actividades programadas para mañana.</div>`
     :tomorrowItems.map(item=>`
@@ -1546,7 +1509,7 @@ function renderToday(){
   const weekEnd=new Date(weekStart);weekEnd.setDate(weekStart.getDate()+6);
   const weekItems=data.filter(d=>{
     const dd=new Date(d.date);
-    return dd>=weekStart&&dd<=weekEnd&&d.date!==today&&d.date!==tomorrow&&(activeFilter==='all'||d.cat===activeFilter);
+    return dd>=weekStart&&dd<=weekEnd&&d.date!==today&&d.date!==tomorrow&&d.cat!=='aieng'&&(activeFilter==='all'||d.cat===activeFilter);
   });
   const weekDiv=document.getElementById('week-today-list');
   if(weekItems.length===0){weekDiv.innerHTML='';return;}
@@ -1567,7 +1530,7 @@ function renderToday(){
 
 function rescheduleOverdue(){
   const today=getTodayStr();
-  const overdue=data.filter(d=>d.date<today&&!d.done&&!d.postponed&&d.cat!=='descanso');
+  const overdue=data.filter(d=>d.date<today&&!d.done&&!d.postponed&&d.cat!=='descanso'&&d.cat!=='aieng');
   if(overdue.length===0){showStatus('✅ Sin actividades atrasadas','var(--english)');return;}
   overdue.forEach(item=>item.date=today);
   showStatus(`📅 ${overdue.length} actividades movidas a hoy`,'var(--terraform)');
@@ -1687,6 +1650,75 @@ function renderWeekly(){
   }).join('');
 }
 
+// ── AI ENGINEER VIEW ──
+function renderAiEng(){
+  const items=data.filter(d=>d.cat==='aieng').sort((a,b)=>a.date.localeCompare(b.date));
+  const totalDone=items.filter(d=>d.done).length;
+  const total=items.length;
+  const pct=total?Math.round(totalDone/total*100):0;
+  const today=getTodayStr();
+
+  document.getElementById('aieng-header').innerHTML=`
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1rem 1.4rem;display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--aieng)">🧠 AI Engineer</div>
+        <div style="font-size:.65rem;color:var(--muted);margin-top:.2rem">${totalDone} de ${total} actividades completadas</div>
+      </div>
+      <div style="flex:1;min-width:120px">
+        <div style="background:var(--surface2);border-radius:6px;height:8px;overflow:hidden">
+          <div style="width:${pct}%;height:100%;background:var(--aieng);border-radius:6px;transition:width .4s"></div>
+        </div>
+        <div style="font-size:.65rem;color:var(--aieng);margin-top:.3rem;text-align:right">${pct}%</div>
+      </div>
+    </div>`;
+
+  if(items.length===0){
+    document.getElementById('aieng-body').innerHTML=`<div class="today-empty">No hay actividades AI Engineer en el plan.</div>`;
+    return;
+  }
+
+  const byWeek={};
+  items.forEach(item=>{
+    const w=item.week||'Sin semana';
+    if(!byWeek[w])byWeek[w]=[];
+    byWeek[w].push(item);
+  });
+
+  document.getElementById('aieng-body').innerHTML=Object.entries(byWeek).map(([week,witems])=>{
+    const wDone=witems.filter(i=>i.done).length;
+    const wTotal=witems.length;
+    const wPct=wTotal?Math.round(wDone/wTotal*100):0;
+    const wid='aieng-'+week.replace(/[^a-zA-Z0-9]/g,'-');
+    const firstDate=witems[0].date;
+    const isActive=firstDate>=today||witems.some(i=>i.date===today);
+    const isPast=witems.every(i=>i.date<today);
+    return `<div class="week-section">
+      <div class="week-header" onclick="toggleWeek('${wid}')">
+        <span class="week-toggle open" id="t-${wid}">▼</span>
+        <span class="week-header-title" style="color:${isPast&&wDone<wTotal?'var(--danger)':isActive?'var(--aieng)':'inherit'}">${week}</span>
+        <div class="week-progress">
+          <div style="font-size:.65rem">${wDone}/${wTotal} · ${firstDate}</div>
+          <div class="week-progress-bar"><div class="week-progress-fill" style="width:${wPct}%;background:var(--aieng)"></div></div>
+        </div>
+      </div>
+      <div class="week-body open" id="${wid}">
+        ${witems.map(item=>`
+          <div class="week-item${item.done?' done':''}" style="border-left:2px solid var(--aieng)">
+            <div class="checkbox-cell ${item.done?'checked':''}" onclick="toggleDone(${item.id})"></div>
+            <div class="week-item-date">${item.date.slice(5)}</div>
+            <div>
+              <div class="week-item-name">${item.name}</div>
+              ${item.dur?`<div style="font-size:.62rem;color:var(--muted);margin-top:.1rem">⏱ ${item.dur}</div>`:''}
+              ${(item.links||[]).filter(l=>l.url).length?`<div style="margin-top:.2rem;display:flex;gap:.35rem;flex-wrap:wrap">${(item.links||[]).filter(l=>l.url).map(l=>`<a href="${l.url}" target="_blank" style="font-size:.6rem;color:var(--terraform);text-decoration:none">🔗 ${l.label||'Recurso'}</a>`).join('')}</div>`:''}
+              ${item.notes?`<div style="font-size:.62rem;color:var(--muted);margin-top:.2rem;font-style:italic">${item.notes}</div>`:''}
+            </div>
+            <div class="week-item-topics">${item.topics||''}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function toggleWeek(id){
   document.getElementById(id).classList.toggle('open');
   document.getElementById('t-'+id).classList.toggle('open');
@@ -1744,6 +1776,7 @@ function toggleDone(id){
     item.done=!item.done;
     if(item.done) item.postponed=false;
     updateStats();renderToday();renderCalendar();renderTable();renderWeekly();
+    if(document.getElementById('view-aieng').classList.contains('active'))renderAiEng();
     saveRow(item);
   }
 }
@@ -1823,7 +1856,6 @@ function openModal(id){
   document.getElementById('m-realDur').value=item.realDur||'';
   document.getElementById('m-delete').style.display='inline-block';
   document.getElementById('m-postpone').style.display='inline-block';
-  document.getElementById('m-focus').style.display='inline-block';
   document.getElementById('m-postpone').textContent=item.postponed?'▶ Quitar posponer':'⏸ Posponer';
   document.getElementById('links-section').innerHTML='';
   (item.links||[]).forEach(l=>addLinkRow(l.label,l.url));
@@ -1845,7 +1877,6 @@ function openNewModal(date=''){
   document.getElementById('m-realDur').value='';
   document.getElementById('m-delete').style.display='none';
   document.getElementById('m-postpone').style.display='none';
-  document.getElementById('m-focus').style.display='none';
   document.getElementById('links-section').innerHTML='';
   addLinkRow();
   onCatChange();
@@ -1898,82 +1929,6 @@ function postponeItem(){
     updateStats();renderToday();renderCalendar();renderTable();renderWeekly();closeModal();
     saveRow(item);
   }
-}
-
-// ── FOCUS MODE ──
-function openFocus(){
-  if(editingId===null)return;
-  openFocusById(editingId);
-  closeModal();
-}
-
-function openFocusById(id){
-  const item=data.find(d=>d.id===id);if(!item)return;
-  focusId=id;
-  document.getElementById('focus-cat').textContent=catLabel(item.cat)+' · '+item.date+(item.dur?' · ⏱'+item.dur:'');
-  document.getElementById('focus-name').textContent=item.name;
-  document.getElementById('focus-topics').textContent=item.topics||'Sin temas definidos.';
-  const links=document.getElementById('focus-links');
-  links.innerHTML=(item.links||[]).filter(l=>l.url).map(l=>`<a href="${l.url}" target="_blank">🔗 ${l.label||l.url}</a>`).join('');
-  document.getElementById('focus-overlay').classList.add('open');
-}
-
-function closeFocus(){document.getElementById('focus-overlay').classList.remove('open');focusId=null;}
-function closeFocusOutside(e){if(e.target===document.getElementById('focus-overlay'))closeFocus();}
-
-function markFocusDone(){
-  if(focusId===null)return;
-  const item=data.find(d=>d.id===focusId);
-  if(item){
-    item.done=true;
-    showStatus('✅ ¡Completada!','var(--english)');
-    updateStats();renderToday();renderCalendar();renderTable();renderWeekly();
-    saveRow(item);
-  }
-  closeFocus();
-}
-
-// ── POMODORO ──
-function togglePomo(){
-  const w=document.getElementById('pomo-wrap');
-  w.classList.toggle('open');
-}
-
-function startPomo(){
-  if(pomoRunning)return;
-  pomoRunning=true;
-  pomoTimer=setInterval(()=>{
-    pomoSeconds--;
-    updatePomoDisplay();
-    if(pomoSeconds<=0){
-      clearInterval(pomoTimer);pomoRunning=false;
-      if(pomoIsWork){
-        pomosToday++;
-        document.getElementById('pomo-count').textContent=`Pomodoros hoy: ${pomosToday}`;
-        showStatus('✅ ¡Pomodoro completado! Descansa 5 min','var(--english)');
-        pomoIsWork=false;pomoSeconds=5*60;
-      } else {
-        showStatus('💪 ¡Descanso terminado! A estudiar','var(--terraform)');
-        pomoIsWork=true;pomoSeconds=25*60;
-      }
-      updatePomoDisplay();
-    }
-  },1000);
-}
-
-function pausePomo(){clearInterval(pomoTimer);pomoRunning=false;}
-
-function resetPomo(){
-  clearInterval(pomoTimer);pomoRunning=false;pomoIsWork=true;pomoSeconds=25*60;
-  updatePomoDisplay();
-}
-
-function updatePomoDisplay(){
-  const m=Math.floor(pomoSeconds/60),s=pomoSeconds%60;
-  const timeEl=document.getElementById('pomo-time');
-  timeEl.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  timeEl.className='pomo-time '+(pomoIsWork?'work':'rest');
-  document.getElementById('pomo-label').textContent=pomoIsWork?'FOCO':'DESCANSO';
 }
 
 // ── EXPORT / IMPORT ──
