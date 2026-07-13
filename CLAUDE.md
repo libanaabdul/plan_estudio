@@ -185,14 +185,16 @@ getAll (DynamoDB)
 
 **Replan del 13 de julio 2026**: 4 certs en 2026 (CP → AI Pract → Terraform → Claude Architect F.) y SAA desplazada a 2027. Las fechas de examen las calcula `replanCerts2026()` en runtime según el progreso real (cada examen cae 2 días después de terminar su fase de estudio). Fechas estimadas en el peor caso (0 progreso previo):
 
-| Cert | Sesiones | Fecha estimada |
-|------|----------|-------------|
-| AWS Cloud Practitioner | 23 | ~10 Agosto 2026 |
-| AWS AI Practitioner | 17 | ~2 Septiembre 2026 |
-| Terraform Associate | 24 | ~3 Octubre 2026 |
-| Claude Certified Architect – Foundations (CCAR-F) | 22 | ~31 Octubre 2026 |
-| AWS SAA | 27 | ~12 Febrero 2027 (estudio arranca 11 Ene) |
-| AI Engineer | — | Q1 2027 |
+| Cert | Sesiones | Pista | Fecha estimada |
+|------|----------|-------|-------------|
+| AWS Cloud Practitioner | 23 | secuencial | ~10 Agosto 2026 |
+| Terraform Associate | 24 | **paralela diaria desde 13-jul** | ~11 Agosto 2026 |
+| AWS AI Practitioner | 17 | secuencial | ~2 Septiembre 2026 |
+| Claude Certified Architect – Foundations (CCAR-F) | 22 | secuencial | ~1 Octubre 2026 |
+| AWS SAA | 27 | secuencial | ~12 Febrero 2027 (estudio arranca 11 Ene) |
+| AI Engineer | — | paralela | Q1 2027 |
+
+**Terraform es pista paralela** (Libi lo usa a diario en el trabajo): 1 sesión TF/día junto a la sesión del track secuencial → 2 sesiones cert/día hasta ~8 de agosto, luego 1. Los exámenes CP (10 ago) y TF (11 ago) quedan seguidos — se pueden separar moviendo el examen a mano (persiste salvo que el reconciliador encuentre basura y re-empaquete).
 
 Si hay ítems `done`, las fechas reales serán anteriores. El banner de fases del header se rellena dinámicamente (`renderPhases()`) desde los ítems `examen` en los datos — nunca editar fechas de fases en el HTML.
 
