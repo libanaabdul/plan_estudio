@@ -1210,7 +1210,7 @@ function buildEnglishEntries(startId){
 
 let data=[];
 let activeFilter='all';
-let currentMonth=new Date(2026,5,15);
+let currentMonth=new Date(); // el calendario abre en el mes actual
 let editingId=null;
 let linkRows=[];
 
@@ -1597,9 +1597,12 @@ function certPhase(d){
   return null;
 }
 
-// Empaqueta TODOS los ítems cert pendientes 1/día lun–sáb desde hoy, por fases
-// en orden, y coloca cada examen 2 días después del último ítem de su fase.
-// Reutilizado por el replan y por el upgrade de currículo.
+// Empaqueta los ítems cert pendientes 1/día lun–sáb desde hoy y coloca cada
+// examen 2 días después del último ítem de su fase.
+// - Pista SECUENCIAL: CP → AI Practitioner → Claude F. → SAA (2027)
+// - Terraform corre en PARALELO diario desde hoy (Libi lo usa a diario en el
+//   trabajo: no tiene sentido esperarse a terminar CP/AI para empezarlo)
+// Reutilizado por el replan, el upgrade de currículo y el reconciliador.
 function packCertPhases(){
   const exams={
     aws:data.find(d=>d.cat==='examen'&&/Cloud Practitioner/.test(d.name||'')),
@@ -1611,27 +1614,42 @@ function packCertPhases(){
   // Fechas de examen del plan viejo: si un examen nuevo cayera en una de estas,
   // la migración v4 podría re-dispararse en un dispositivo sin flag — evitarlas.
   const V4_DATES=new Set(['2026-07-19','2026-08-03','2026-08-27','2026-09-29','2026-11-24']);
-  const cur=parseLocalDate(getTodayStr());
-  const skipSunday=()=>{while(cur.getDay()===0)cur.setDate(cur.getDate()+1);};
-  const nextStudyDay=()=>{skipSunday();const ds=fmtLocalDate(cur);cur.setDate(cur.getDate()+1);return ds;};
+  const usedExamDates=new Set();
 
-  for(const phase of ['aws','ai','terraform','cca','saa']){
+  const packItems=(phase,cur)=>{
+    const items=data.filter(d=>!d.done&&d.cat!=='examen'&&certPhase(d)===phase)
+      .sort((a,b)=>a.date.localeCompare(b.date));
+    items.forEach(it=>{
+      while(cur.getDay()===0)cur.setDate(cur.getDate()+1);
+      it.date=fmtLocalDate(cur);it.postponed=false;
+      cur.setDate(cur.getDate()+1);
+    });
+    return cur;
+  };
+  const placeExam=(cur,phase)=>{
+    cur.setDate(cur.getDate()+1); // 1 día de repaso libre
+    while(cur.getDay()===0||V4_DATES.has(fmtLocalDate(cur))||usedExamDates.has(fmtLocalDate(cur)))
+      cur.setDate(cur.getDate()+1);
+    const ds=fmtLocalDate(cur);
+    if(exams[phase])exams[phase].date=ds;
+    usedExamDates.add(ds);
+  };
+
+  // Pista secuencial
+  let cur=parseLocalDate(getTodayStr());
+  for(const phase of ['aws','ai','cca','saa']){
     if(phase==='saa'){
       const janStart=parseLocalDate('2027-01-11');
       if(cur<janStart)cur.setTime(janStart.getTime());
     }
-    const items=data.filter(d=>!d.done&&d.cat!=='examen'&&certPhase(d)===phase)
-      .sort((a,b)=>a.date.localeCompare(b.date));
-    items.forEach(it=>{it.date=nextStudyDay();it.postponed=false;});
-    // 1 día de repaso libre, luego el examen
-    cur.setDate(cur.getDate()+1);
-    skipSunday();
-    let examDs=fmtLocalDate(cur);
-    while(V4_DATES.has(examDs)){cur.setDate(cur.getDate()+1);skipSunday();examDs=fmtLocalDate(cur);}
-    if(exams[phase])exams[phase].date=examDs;
+    cur=packItems(phase,cur);
+    placeExam(cur,phase);
     // descanso post-examen antes de la siguiente fase
     cur.setDate(cur.getDate()+2);
   }
+  // Pista paralela: Terraform diario desde hoy
+  const tfCur=packItems('terraform',parseLocalDate(getTodayStr()));
+  placeExam(tfCur,'terraform');
 }
 
 async function replanCerts2026(){
@@ -1644,7 +1662,7 @@ async function replanCerts2026(){
   localStorage.setItem(MIGATION_KEY,'done'); // la migración v4 queda obsoleta tras el replan
   localStorage.setItem(REPLAN_KEY,'done');
   await saveData();
-  showStatus('📅 Plan reiniciado desde hoy: CP → AI → Terraform → Claude F. (2026) + SAA (2027)','var(--terraform)');
+  showStatus('📅 Plan reiniciado desde hoy: CP → AI → Claude F. + Terraform en paralelo (2026), SAA (2027)','var(--terraform)');
 }
 
 // ── CURRÍCULO v2: CP / AI Practitioner / Terraform ────────────────────────────
@@ -1969,12 +1987,14 @@ function rescheduleOverdue(){
 // Límites de navegación derivados de los datos (mes mínimo y máximo del plan),
 // para que el calendario no quede bloqueado cuando el plan cruce de año.
 function calBounds(){
-  let min='2026-06',max='2027-03';
+  let min='',max='';
   data.forEach(d=>{
     const m=(d.date||'').slice(0,7);
-    if(m){if(m<min)min=m;if(m>max)max=m;}
+    if(!m)return;
+    if(!min||m<min)min=m;
+    if(!max||m>max)max=m;
   });
-  return {min,max};
+  return {min:min||'2026-07',max:max||'2027-03'};
 }
 
 function renderCalendar(){
