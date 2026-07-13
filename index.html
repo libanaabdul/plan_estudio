@@ -530,65 +530,92 @@ tr.postponed-row{border-left:3px solid var(--postponed);}
 
 <script>
 const INITIAL=[
+{name:"CP: Conceptos de nube — valor y modelos",date:"2026-07-13",cat:"aws",dur:"35 min",week:"CP S1: Nube y cómputo",topics:"Qué es cloud | 6 ventajas de la nube | IaaS vs PaaS vs SaaS | público / privado / híbrido | Por qué hoy: dominio Cloud Concepts (24%) y el vocabulario del resto del examen | ▶ 10 flashcards | ✅ Recitas las 6 ventajas sin mirar",course:"",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"https://tutorialsdojo.com/aws-certified-cloud-practitioner/",notes:"",realDur:"",postponed:false},
+{name:"CP: Well-Architected — 6 pilares",date:"2026-07-14",cat:"aws",dur:"35 min",week:"CP S1: Nube y cómputo",topics:"Operational Excellence | Security | Reliability | Performance Efficiency | Cost Optimization | Sustainability | Por qué: cae seguro y ordena cómo piensa AWS | ▶ Escribe 1 ejemplo real tuyo por pilar | ✅ Nombras los 6 con un servicio asociado",course:"",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"https://tutorialsdojo.com/aws-cheat-sheets/",notes:"",realDur:"",postponed:false},
+{name:"CP: Infraestructura global",date:"2026-07-15",cat:"aws",dur:"30 min",week:"CP S1: Nube y cómputo",topics:"Regiones vs AZs vs Edge Locations | Local Zones, Outposts, Wavelength | criterios para elegir región (latencia, compliance, costo, servicios) | ▶ Dibuja la jerarquía | ✅ La explicas de memoria",course:"",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"",notes:"",realDur:"",postponed:false},
+{name:"CP: EC2 — instancias y modelos de compra",date:"2026-07-16",cat:"aws",dur:"40 min",week:"CP S1: Nube y cómputo",topics:"Familias de instancias (general, cómputo, memoria) | On-Demand vs Reserved vs Spot vs Savings Plans vs Dedicated Host | Por qué: el pricing de EC2 es pregunta garantizada | ▶ 5 escenarios: elige el modelo | ✅ 5/5 con justificación",course:"",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"https://tutorialsdojo.com/aws-certified-cloud-practitioner/",notes:"",realDur:"",postponed:false},
+{name:"CP: ELB + Auto Scaling — alta disponibilidad",date:"2026-07-17",cat:"aws",dur:"35 min",week:"CP S1: Nube y cómputo",topics:"ALB vs NLB | Auto Scaling Groups | multi-AZ = HA | elasticidad vs escalabilidad vs agilidad | ▶ Diagrama EC2+ASG+ELB multi-AZ | ✅ Explicas HA vs elasticidad en 2 frases",course:"",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"",notes:"",realDur:"",postponed:false},
+{name:"CP: Repaso semanal S1 + mini-quiz",date:"2026-07-18",cat:"aws",dur:"45 min",week:"CP S1: Nube y cómputo",topics:"20 preguntas solo de lo visto esta semana (quiz del curso o TD sampler) | ▶ Fallos → lista para el lunes | ✅ ≥80% de aciertos",course:"",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-practice-exams-c/",link2:"https://tutorialsdojo.com/aws-certified-cloud-practitioner/",notes:"",realDur:"",postponed:false},
+{name:"CP: S3 — clases y ciclo de vida",date:"2026-07-19",cat:"aws",dur:"40 min",week:"CP S2: Storage, red y datos",topics:"Standard / Standard-IA / One Zone-IA / Glacier Instant-Flexible-Deep | lifecycle rules, versioning, replication | durabilidad 11 nueves | ▶ 5 casos: elige la clase más barata que cumpla | ✅ 5/5",course:"",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"https://tutorialsdojo.com/aws-certified-cloud-practitioner/",notes:"",realDur:"",postponed:false},
+{name:"CP: EBS vs EFS vs Instance Store",date:"2026-07-20",cat:"aws",dur:"35 min",week:"CP S2: Storage, red y datos",topics:"Block vs file vs object | EBS snapshots | EFS multi-instancia | Storage Gateway, AWS Backup, Snow Family | ▶ Tabla comparativa propia | ✅ La reproduces de memoria",course:"",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"",notes:"",realDur:"",postponed:false},
+{name:"CP: VPC — subnets y seguridad de red",date:"2026-07-21",cat:"aws",dur:"40 min",week:"CP S2: Storage, red y datos",topics:"Subnets públicas vs privadas | IGW, NAT Gateway | Security Groups (stateful, allow) vs NACL (stateless, allow+deny) | Por qué: SG vs NACL es EL clásico del examen | ▶ Dibuja una VPC con 2 subnets | ✅ SG vs NACL sin dudar",course:"",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"https://tutorialsdojo.com/aws-certified-cloud-practitioner/",notes:"",realDur:"",postponed:false},
+{name:"CP: Redes globales — Route 53, CloudFront, conectividad",date:"2026-07-22",cat:"aws",dur:"35 min",week:"CP S2: Storage, red y datos",topics:"Route 53 (tipos de routing) | CloudFront + edge caching | Direct Connect vs Site-to-Site VPN | Global Accelerator | ▶ Cuándo DX y cuándo VPN: 3 escenarios | ✅ 3/3",course:"",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"",notes:"",realDur:"",postponed:false},
+{name:"CP: Bases de datos — la correcta para cada caso",date:"2026-07-23",cat:"aws",dur:"40 min",week:"CP S2: Storage, red y datos",topics:"RDS multi-AZ (HA) vs read replicas (lectura) | Aurora | DynamoDB (serverless, key-value) | ElastiCache | Redshift (analítica) | ▶ 6 casos: asigna la BD | ✅ 6/6",course:"",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"https://tutorialsdojo.com/aws-certified-cloud-practitioner/",notes:"",realDur:"",postponed:false},
+{name:"CP: Repaso semanal S2 + mini-quiz",date:"2026-07-24",cat:"aws",dur:"45 min",week:"CP S2: Storage, red y datos",topics:"20 preguntas de storage+red+BD | ▶ Fallos → flashcards | ✅ ≥80%",course:"",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-practice-exams-c/",link2:"https://tutorialsdojo.com/aws-certified-cloud-practitioner/",notes:"",realDur:"",postponed:false},
+{name:"CP: Serverless — Lambda y mensajería",date:"2026-07-25",cat:"aws",dur:"40 min",week:"CP S3: Serverless, seguridad y billing",topics:"Lambda (triggers, pricing por ms) | SQS (cola, desacople) vs SNS (pub/sub) vs EventBridge | API Gateway, Step Functions, Fargate | ▶ SQS vs SNS: 4 escenarios | ✅ Sin dudar",course:"",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"https://tutorialsdojo.com/aws-certified-cloud-practitioner/",notes:"",realDur:"",postponed:false},
+{name:"CP: Contenedores y despliegue",date:"2026-07-26",cat:"aws",dur:"35 min",week:"CP S3: Serverless, seguridad y billing",topics:"ECS vs EKS | ECR | Elastic Beanstalk (PaaS) vs CloudFormation (IaC) | Amplify, Lightsail | ▶ Beanstalk vs CloudFormation en 2 frases | ✅ Claro y de memoria",course:"",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"",notes:"",realDur:"",postponed:false},
+{name:"CP: IAM a fondo",date:"2026-07-27",cat:"aws",dur:"40 min",week:"CP S3: Serverless, seguridad y billing",topics:"Usuarios / grupos / roles / policies | rol vs access keys (rol siempre gana) | MFA y root best practices | Organizations + SCPs | Identity Center | ▶ 4 escenarios: rol o usuario | ✅ 4/4",course:"",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"https://tutorialsdojo.com/aws-certified-cloud-practitioner/",notes:"",realDur:"",postponed:false},
+{name:"CP: Seguridad — modelo compartido y servicios",date:"2026-07-28",cat:"aws",dur:"40 min",week:"CP S3: Serverless, seguridad y billing",topics:"Shared Responsibility Model DE MEMORIA | KMS | Shield (DDoS) vs WAF (capa 7) | GuardDuty (amenazas) vs Inspector (vulnerabilidades) vs Macie (PII) | Artifact, Trusted Advisor | ▶ Clasifica 8 responsabilidades: AWS o cliente | ✅ 8/8",course:"",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"https://tutorialsdojo.com/aws-certified-cloud-practitioner/",notes:"",realDur:"",postponed:false},
+{name:"CP: Billing y planes de soporte",date:"2026-07-29",cat:"aws",dur:"35 min",week:"CP S3: Serverless, seguridad y billing",topics:"Cost Explorer vs Budgets vs Cost & Usage Report | Pricing Calculator | consolidated billing | Basic / Developer / Business / Enterprise (tiempos de respuesta) | ▶ Elige plan por escenario ×4 | ✅ 4/4",course:"",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"",notes:"",realDur:"",postponed:false},
+{name:"CP: Observabilidad y migración",date:"2026-07-30",cat:"aws",dur:"35 min",week:"CP S3: Serverless, seguridad y billing",topics:"CloudWatch (métricas) vs CloudTrail (quién hizo qué) vs Config (estado de recursos) — el trío que confunde | DMS, Migration Hub, CAF (fases) | ▶ El trío en 1 frase cada uno | ✅ Sin confundirlos",course:"",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"https://tutorialsdojo.com/aws-cheat-sheets/",notes:"",realDur:"",postponed:false},
+{name:"🎯 Simulacro CP completo 1",date:"2026-07-31",cat:"repaso",dur:"90 min",week:"CP S4: Simulacros y cierre",topics:"65 preguntas / 90 min en condiciones reales (Neal Davis) | ▶ Anota errores POR DOMINIO | ✅ Score de referencia registrado",course:"",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-practice-exams-c/",link2:"https://tutorialsdojo.com/aws-certified-cloud-practitioner/",notes:"",realDur:"",postponed:false},
+{name:"CP: Revisión de errores simulacro 1",date:"2026-08-01",cat:"aws",dur:"45 min",week:"CP S4: Simulacros y cierre",topics:"Error por error: POR QUÉ la correcta es correcta | ▶ Refuerza el dominio más débil con cheat sheets TD | ✅ Cada error tiene su flashcard",course:"",link:"https://tutorialsdojo.com/aws-certified-cloud-practitioner/",link2:"https://tutorialsdojo.com/aws-cheat-sheets/",notes:"",realDur:"",postponed:false},
+{name:"🎯 Simulacro CP completo 2",date:"2026-08-02",cat:"repaso",dur:"90 min",week:"CP S4: Simulacros y cierre",topics:"Condiciones reales | Meta: >80% | ▶ Compara por dominio contra el simulacro 1 | ✅ Tendencia al alza",course:"",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-practice-exams-c/",link2:"",notes:"",realDur:"",postponed:false},
+{name:"CP: Repaso final — servicios que confunden",date:"2026-08-03",cat:"aws",dur:"40 min",week:"CP S4: Simulacros y cierre",topics:"SNS vs SQS | SG vs NACL | CloudWatch vs CloudTrail vs Config | GuardDuty vs Inspector vs Macie | RI vs Savings Plans | ▶ Cheat sheet propio de 1 página | ✅ 0 dudas en la lista",course:"",link:"https://tutorialsdojo.com/aws-cheat-sheets/",link2:"",notes:"",realDur:"",postponed:false},
+{name:"🎯 Simulacro CP completo 3 — ÚLTIMO",date:"2026-08-04",cat:"repaso",dur:"90 min",week:"CP S4: Simulacros y cierre",topics:"Meta: >85% | Si cumples: examen agendado y a dormir temprano | ✅ Confianza ≥8/10 por dominio",course:"",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-practice-exams-c/",link2:"",notes:"",realDur:"",postponed:false},
+{name:"AI: IA vs ML vs Deep Learning",date:"2026-08-15",cat:"ai",dur:"35 min",week:"AI Pract S1: Fundamentos ML",topics:"Definiciones y jerarquía | supervisado vs no supervisado vs refuerzo | casos de uso de cada tipo | Por qué hoy: dominio 1 (20%) y base de todo | ▶ Clasifica 6 problemas por tipo | ✅ 6/6",course:"",link:"https://www.udemy.com/course/aws-ai-practitioner-certified/",link2:"https://tutorialsdojo.com/aws-certified-ai-practitioner-aif-c01/",notes:"",realDur:"",postponed:false},
+{name:"AI: Ciclo de vida ML y datos",date:"2026-08-16",cat:"ai",dur:"40 min",week:"AI Pract S1: Fundamentos ML",topics:"Pipeline: recolección → limpieza → feature engineering → train/val/test → deploy | estructurados vs no estructurados | labeled vs unlabeled | ▶ Ordena las fases y di qué puede salir mal en cada una | ✅ Pipeline de memoria",course:"",link:"https://www.udemy.com/course/aws-ai-practitioner-certified/",link2:"",notes:"",realDur:"",postponed:false},
+{name:"AI: Métricas y problemas del modelo",date:"2026-08-17",cat:"ai",dur:"40 min",week:"AI Pract S1: Fundamentos ML",topics:"Accuracy vs precision vs recall vs F1 vs AUC | overfitting vs underfitting | bias-variance | inferencia batch vs real-time | ▶ 4 casos (fraude, spam, diagnóstico, churn): elige métrica | ✅ 4/4 con justificación",course:"",link:"https://www.udemy.com/course/aws-ai-practitioner-certified/",link2:"https://tutorialsdojo.com/aws-certified-ai-practitioner-aif-c01/",notes:"",realDur:"",postponed:false},
+{name:"AI: SageMaker — el toolbox ML de AWS",date:"2026-08-18",cat:"ai",dur:"40 min",week:"AI Pract S1: Fundamentos ML",topics:"Studio, Data Wrangler, Ground Truth (labeling), Feature Store, endpoints, JumpStart | cuándo SageMaker vs servicio pre-entrenado | ▶ Mapea 5 tareas a componentes | ✅ 5/5",course:"",link:"https://www.udemy.com/course/aws-ai-practitioner-certified/",link2:"https://docs.aws.amazon.com/sagemaker/",notes:"",realDur:"",postponed:false},
+{name:"AI: Servicios AI pre-entrenados",date:"2026-08-19",cat:"ai",dur:"40 min",week:"AI Pract S1: Fundamentos ML",topics:"Rekognition (visión) | Textract (OCR) vs Comprehend (NLP) | Transcribe vs Polly | Translate | Lex (bots) | Kendra (búsqueda) | Personalize | Por qué: el formato favorito del examen es preguntar qué servicio usar para X | ▶ 8 casos | ✅ 8/8",course:"",link:"https://www.udemy.com/course/aws-ai-practitioner-certified/",link2:"https://tutorialsdojo.com/aws-certified-ai-practitioner-aif-c01/",notes:"",realDur:"",postponed:false},
+{name:"AI: Repaso semanal S1 + mini-quiz",date:"2026-08-20",cat:"ai",dur:"45 min",week:"AI Pract S1: Fundamentos ML",topics:"20 preguntas de fundamentos ML | ▶ Fallos → flashcards | ✅ ≥80%",course:"",link:"https://portal.tutorialsdojo.com/courses/aws-certified-ai-practitioner-aif-c01-practice-exams/",link2:"",notes:"",realDur:"",postponed:false},
+{name:"AI: Foundation models — cómo funcionan",date:"2026-08-21",cat:"ai",dur:"40 min",week:"AI Pract S2: IA Generativa y Bedrock",topics:"Tokens, embeddings, context window, parámetros | transformers a alto nivel | modelos de difusión (imágenes) | Por qué: dominio GenAI (24%) | ▶ Explica token y context window como a un colega | ✅ Sin tecnicismos vacíos",course:"",link:"https://www.udemy.com/course/aws-ai-practitioner-certified/",link2:"https://docs.aws.amazon.com/bedrock/",notes:"",realDur:"",postponed:false},
+{name:"AI: Prompt engineering",date:"2026-08-22",cat:"ai",dur:"35 min",week:"AI Pract S2: IA Generativa y Bedrock",topics:"Zero-shot vs few-shot | chain-of-thought | temperatura, top-p, top-k (qué controla cada uno) | prompt injection y jailbreak | ▶ Escribe 3 prompts con técnicas distintas | ✅ Identificas la técnica en ejemplos ajenos",course:"",link:"https://www.udemy.com/course/aws-ai-practitioner-certified/",link2:"",notes:"",realDur:"",postponed:false},
+{name:"AI: Amazon Bedrock",date:"2026-08-23",cat:"ai",dur:"40 min",week:"AI Pract S2: IA Generativa y Bedrock",topics:"Modelos disponibles | Knowledge Bases (RAG gestionado) | Agents | Guardrails | on-demand vs provisioned throughput | ▶ Dibuja una arquitectura RAG con Bedrock | ✅ Cada pieza tiene su porqué",course:"",link:"https://docs.aws.amazon.com/bedrock/",link2:"https://www.udemy.com/course/aws-ai-practitioner-certified/",notes:"",realDur:"",postponed:false},
+{name:"AI: RAG vs fine-tuning vs pre-training",date:"2026-08-24",cat:"ai",dur:"40 min",week:"AI Pract S2: IA Generativa y Bedrock",topics:"Escalera de personalización: prompt eng < RAG < fine-tuning < continued pre-training (costo y cuándo) | Por qué: LA pregunta del examen | ▶ 5 escenarios: elige el enfoque más barato que funcione | ✅ 5/5",course:"",link:"https://www.udemy.com/course/aws-ai-practitioner-certified/",link2:"https://tutorialsdojo.com/aws-certified-ai-practitioner-aif-c01/",notes:"",realDur:"",postponed:false},
+{name:"AI: Amazon Q y ecosistema GenAI",date:"2026-08-25",cat:"ai",dur:"35 min",week:"AI Pract S2: IA Generativa y Bedrock",topics:"Q Business vs Q Developer | PartyRock | JumpStart vs Bedrock | costos de inferencia | ▶ Q vs Bedrock: cuándo cada uno ×3 casos | ✅ 3/3",course:"",link:"https://www.udemy.com/course/aws-ai-practitioner-certified/",link2:"",notes:"",realDur:"",postponed:false},
+{name:"AI: Repaso semanal S2 + mini-quiz",date:"2026-08-26",cat:"ai",dur:"45 min",week:"AI Pract S2: IA Generativa y Bedrock",topics:"20 preguntas de GenAI + Bedrock | ▶ Fallos → flashcards | ✅ ≥80%",course:"",link:"https://portal.tutorialsdojo.com/courses/aws-certified-ai-practitioner-aif-c01-practice-exams/",link2:"",notes:"",realDur:"",postponed:false},
+{name:"AI: Responsible AI",date:"2026-08-27",cat:"ai",dur:"40 min",week:"AI Pract S3: Responsible AI y cierre",topics:"Fairness y bias | explicabilidad: SageMaker Clarify + Model Cards | human-in-the-loop (A2I) | hallucinations y veracidad | Por qué: dominio propio (14%) que la gente descuida | ▶ Detecta el riesgo en 4 casos | ✅ 4/4",course:"",link:"https://www.udemy.com/course/aws-ai-practitioner-certified/",link2:"https://tutorialsdojo.com/aws-certified-ai-practitioner-aif-c01/",notes:"",realDur:"",postponed:false},
+{name:"AI: Seguridad y gobernanza para AI",date:"2026-08-28",cat:"ai",dur:"40 min",week:"AI Pract S3: Responsible AI y cierre",topics:"IAM + Bedrock | PrivateLink, cifrado KMS | data residency | AI Service Cards, compliance | gobernanza de datos de entrenamiento | ▶ 5 controles para un chatbot con datos sensibles | ✅ Lista completa",course:"",link:"https://www.udemy.com/course/aws-ai-practitioner-certified/",link2:"https://docs.aws.amazon.com/bedrock/",notes:"",realDur:"",postponed:false},
+{name:"🎯 Simulacro AI Practitioner 1",date:"2026-08-29",cat:"repaso",dur:"90 min",week:"AI Pract S3: Responsible AI y cierre",topics:"65 preguntas / 90 min condiciones reales (TD) | ▶ Errores por dominio | ✅ Score de referencia",course:"",link:"https://portal.tutorialsdojo.com/courses/aws-certified-ai-practitioner-aif-c01-practice-exams/",link2:"https://tutorialsdojo.com/aws-certified-ai-practitioner-aif-c01/",notes:"",realDur:"",postponed:false},
+{name:"AI: Revisión errores + servicios que confunden",date:"2026-08-30",cat:"ai",dur:"45 min",week:"AI Pract S3: Responsible AI y cierre",topics:"Comprehend vs Kendra vs Q | Textract vs Rekognition | Clarify vs Guardrails | ▶ Fallos del simulacro → flashcards | ✅ El trío de confusiones, claro",course:"",link:"https://tutorialsdojo.com/aws-certified-ai-practitioner-aif-c01/",link2:"",notes:"",realDur:"",postponed:false},
+{name:"🎯 Simulacro AI Practitioner 2 — ÚLTIMO",date:"2026-08-31",cat:"repaso",dur:"90 min",week:"AI Pract S3: Responsible AI y cierre",topics:"Meta: >80% | Si cumples: agenda en Pearson VUE y cierra el temario | ✅ Confianza ≥8/10",course:"",link:"https://portal.tutorialsdojo.com/courses/aws-certified-ai-practitioner-aif-c01-practice-exams/",link2:"",notes:"",realDur:"",postponed:false},
+{name:"TF: IaC y el porqué de Terraform",date:"2026-09-10",cat:"terraform",dur:"35 min",week:"TF S1: IaC y workflow",topics:"Qué resuelve IaC | declarativo vs imperativo | TF vs CloudFormation vs Ansible | multi-cloud real | Por qué hoy: objetivos 1-2 del examen 003 | ▶ 3 ventajas de TF sobre CFN | ✅ Las defiendes en voz alta",course:"",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"https://developer.hashicorp.com/terraform/tutorials/certification-003/associate-study-003",notes:"",realDur:"",postponed:false},
+{name:"TF: Providers y versionado",date:"2026-09-11",cat:"terraform",dur:"40 min",week:"TF S1: IaC y workflow",topics:"required_providers: source y version | constraint pesimista ~> | .terraform.lock.hcl (qué fija y por qué se commitea) | provider alias (multi-región) | ▶ Escribe un bloque terraform{} de memoria | ✅ Sin mirar docs",course:"",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"https://developer.hashicorp.com/terraform/language",notes:"",realDur:"",postponed:false},
+{name:"TF: Workflow core — init / plan / apply",date:"2026-09-12",cat:"terraform",dur:"40 min",week:"TF S1: IaC y workflow",topics:"Qué hace EXACTAMENTE init (providers, backend, módulos) | plan y saved plan (-out) | apply | destroy | validate vs fmt | ▶ Explica qué aparece en disco tras init | ✅ Los 4 comandos con sus efectos",course:"",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"https://developer.hashicorp.com/terraform/cli",notes:"",realDur:"",postponed:false},
+{name:"TF: HCL — recursos y dependencias",date:"2026-09-13",cat:"terraform",dur:"40 min",week:"TF S1: IaC y workflow",topics:"Sintaxis de bloques | referencias resource.name.attr | dependencias implícitas (grafo) vs depends_on explícito | ▶ Predice el orden de creación en un config de ejemplo | ✅ Orden correcto y por qué",course:"",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"https://developer.hashicorp.com/terraform/language",notes:"",realDur:"",postponed:false},
+{name:"TF: Variables, outputs y locals",date:"2026-09-14",cat:"terraform",dur:"40 min",week:"TF S1: IaC y workflow",topics:"variable: type, default, validation, sensitive | PRECEDENCIA: -var > *.auto.tfvars > terraform.tfvars > TF_VAR_ env (cae seguro) | outputs | locals vs variables | ▶ Lista de precedencia de memoria | ✅ Perfecta",course:"",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"https://developer.hashicorp.com/terraform/language",notes:"",realDur:"",postponed:false},
+{name:"TF: Lab semanal — mini proyecto",date:"2026-09-15",cat:"terraform",dur:"45 min",week:"TF S1: IaC y workflow",topics:"Provisiona algo real con variables + outputs en tu cuenta | fmt + validate antes de apply | ▶ apply y destroy limpios | ✅ Ciclo completo sin errores",course:"",link:"https://www.udemy.com/course/terraform-on-aws-by-kodekloud/",link2:"",notes:"",realDur:"",postponed:false},
+{name:"TF: State — qué es y por qué existe",date:"2026-09-16",cat:"terraform",dur:"40 min",week:"TF S2: Estado",topics:"terraform.tfstate: el mapa real ↔ config | state list / state show | por qué NUNCA editarlo a mano | datos sensibles dentro del state | ▶ Explica qué pasa si el state se pierde | ✅ Respuesta completa (import o recrear)",course:"",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"https://developer.hashicorp.com/terraform/tutorials/certification-003/associate-study-003",notes:"",realDur:"",postponed:false},
+{name:"TF: Remote state y locking",date:"2026-09-17",cat:"terraform",dur:"40 min",week:"TF S2: Estado",topics:"Backends (S3, HCP Terraform) | state locking: qué previene | terraform_remote_state data source | migrar de local a remoto | ▶ Conéctalo con tu proyecto real: este tracker usa backend S3 | ✅ Identificas el bloque en tu main.tf",course:"",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"https://developer.hashicorp.com/terraform/cli",notes:"",realDur:"",postponed:false},
+{name:"TF: Manipular estado",date:"2026-09-18",cat:"terraform",dur:"40 min",week:"TF S2: Estado",topics:"state mv (refactor sin destruir) | state rm (deja de gestionar) | import (adopta lo existente) | -replace (el ex taint) | ▶ 5 situaciones: elige el comando | ✅ 5/5",course:"",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"https://developer.hashicorp.com/terraform/cli",notes:"",realDur:"",postponed:false},
+{name:"TF: Drift y lifecycle",date:"2026-09-19",cat:"terraform",dur:"40 min",week:"TF S2: Estado",topics:"Drift: plan -refresh-only | lifecycle: ignore_changes, create_before_destroy, prevent_destroy | ▶ Este repo usa prevent_destroy en DynamoDB: encuentra el bloque y explica por qué | ✅ Justificación clara",course:"",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"https://developer.hashicorp.com/terraform/language",notes:"",realDur:"",postponed:false},
+{name:"TF: Workspaces",date:"2026-09-20",cat:"terraform",dur:"35 min",week:"TF S2: Estado",topics:"terraform workspace new/select/list | qué SON (states paralelos del mismo config) y qué NO son (no reemplazan separar ambientes) | ▶ 2 casos donde NO usarlos | ✅ Argumentados",course:"",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"https://developer.hashicorp.com/terraform/cli",notes:"",realDur:"",postponed:false},
+{name:"TF: Lab semanal — estado",date:"2026-09-21",cat:"terraform",dur:"45 min",week:"TF S2: Estado",topics:"Rompe y arregla: crea un recurso a mano en la consola, hazle import, luego state mv | ▶ Termina con plan sin cambios | ✅ Plan limpio",course:"",link:"https://www.udemy.com/course/terraform-on-aws-by-kodekloud/",link2:"",notes:"",realDur:"",postponed:false},
+{name:"TF: Módulos — estructura y registry",date:"2026-09-22",cat:"terraform",dur:"40 min",week:"TF S3: Módulos y lenguaje",topics:"Módulo raíz vs child | inputs (variables) y outputs del módulo | source: registry / git / path relativo | version pinning | ▶ Llama un módulo del registry con versión fijada | ✅ init lo descarga",course:"",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"https://developer.hashicorp.com/terraform/language",notes:"",realDur:"",postponed:false},
+{name:"TF: count vs for_each",date:"2026-09-23",cat:"terraform",dur:"40 min",week:"TF S3: Módulos y lenguaje",topics:"count.index y sus problemas de reordenamiento | for_each con maps/sets (keys estables) | dynamic blocks | ▶ Migra un count a for_each | ✅ Sabes cuál elegir y por qué",course:"",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"https://developer.hashicorp.com/terraform/language",notes:"",realDur:"",postponed:false},
+{name:"TF: Funciones y expresiones",date:"2026-09-24",cat:"terraform",dur:"40 min",week:"TF S3: Módulos y lenguaje",topics:"lookup, merge, concat, try | for expressions | condicionales x ? y : z | splat [*] | ▶ Prueba 5 expresiones en terraform console | ✅ Las 5 evaluadas correctamente",course:"",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"https://developer.hashicorp.com/terraform/language",notes:"",realDur:"",postponed:false},
+{name:"TF: Data sources y provisioners",date:"2026-09-25",cat:"terraform",dur:"35 min",week:"TF S3: Módulos y lenguaje",topics:"data: leer infra existente | provisioners local/remote-exec: por qué HashiCorp dice EVITARLOS | user_data / cloud-init como alternativa | ▶ Cuándo data vs resource ×3 casos | ✅ 3/3",course:"",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"https://developer.hashicorp.com/terraform/language",notes:"",realDur:"",postponed:false},
+{name:"TF: Debugging y calidad",date:"2026-09-26",cat:"terraform",dur:"35 min",week:"TF S3: Módulos y lenguaje",topics:"TF_LOG (TRACE→ERROR) y TF_LOG_PATH | fmt y validate en CI (este repo los corre) | -target y sus peligros | ▶ Activa TF_LOG=DEBUG y lee un plan | ✅ Encuentras algo que no sabías",course:"",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"https://developer.hashicorp.com/terraform/cli",notes:"",realDur:"",postponed:false},
+{name:"TF: Lab semanal — módulo propio",date:"2026-09-27",cat:"terraform",dur:"45 min",week:"TF S3: Módulos y lenguaje",topics:"Refactoriza: convierte parte de la infra del tracker en un módulo con variables | ▶ Meta: plan idéntico tras el refactor | ✅ Sin cambios en el plan",course:"",link:"https://www.udemy.com/course/terraform-on-aws-by-kodekloud/",link2:"",notes:"",realDur:"",postponed:false},
+{name:"TF: HCP Terraform (Cloud)",date:"2026-09-28",cat:"terraform",dur:"40 min",week:"TF S4: HCP y simulacros",topics:"Workspaces remotos | runs y VCS-driven workflow | variable sets | remote execution vs local | ▶ Tabla OSS vs HCP | ✅ 5 diferencias de memoria",course:"",link:"https://developer.hashicorp.com/terraform/tutorials/certification-003/associate-study-003",link2:"https://www.udemy.com/course/terraform-beginner-to-advanced/",notes:"",realDur:"",postponed:false},
+{name:"TF: Sentinel y private registry",date:"2026-09-29",cat:"terraform",dur:"35 min",week:"TF S4: HCP y simulacros",topics:"Policy as code (Sentinel) — qué tier lo incluye | private module registry | Por qué: las preguntas de HCP diferencian free vs paid | ▶ Lista qué agrega el tier de pago | ✅ Completa",course:"",link:"https://developer.hashicorp.com/terraform/tutorials/certification-003/associate-study-003",link2:"",notes:"",realDur:"",postponed:false},
+{name:"🎯 Simulacro Terraform 1",date:"2026-09-30",cat:"repaso",dur:"60 min",week:"TF S4: HCP y simulacros",topics:"57 preguntas estilo examen | ▶ Errores por objetivo oficial | ✅ Score de referencia",course:"",link:"https://www.udemy.com/course/terraform-associate-practice-exam/",link2:"https://developer.hashicorp.com/terraform/tutorials/certification-003/associate-study-003",notes:"",realDur:"",postponed:false},
+{name:"TF: Revisión errores + objetivos oficiales",date:"2026-10-01",cat:"terraform",dur:"45 min",week:"TF S4: HCP y simulacros",topics:"Recorre los 9 objetivos del examen 003 con checklist | ▶ Marca los flojos y reléelos en la study guide | ✅ Confianza ≥7/10 en los 9",course:"",link:"https://developer.hashicorp.com/terraform/tutorials/certification-003/associate-study-003",link2:"https://developer.hashicorp.com/terraform/language",notes:"",realDur:"",postponed:false},
+{name:"🎯 Simulacro Terraform 2",date:"2026-10-02",cat:"repaso",dur:"90 min",week:"TF S4: HCP y simulacros",topics:"Condiciones reales | Meta: >80% | ▶ Compara contra simulacro 1 | ✅ Tendencia al alza",course:"",link:"https://www.udemy.com/course/terraform-associate-practice-exam/",link2:"",notes:"",realDur:"",postponed:false},
+{name:"🎯 Simulacro Terraform 3 — ÚLTIMO",date:"2026-10-03",cat:"repaso",dur:"90 min",week:"TF S4: HCP y simulacros",topics:"Meta: >85% | Si cumples: examen agendado | ✅ Confianza ≥8/10 por objetivo",course:"",link:"https://www.udemy.com/course/terraform-associate-practice-exam/",link2:"",notes:"",realDur:"",postponed:false},
 // ── S1 AWS + TERRAFORM ──
-{name:"Teoría AWS: Regiones IAM EC2",date:"2026-06-10",cat:"aws",dur:"45 min",week:"Semana 1",topics:"Regiones vs AZs vs Edge Locations | IAM users roles policies | EC2 on-demand vs reserved vs spot",course:"Udemy: Ultimate AWS - Stephane Maarek",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Terraform: HCL providers y resources",date:"2026-06-12",cat:"terraform",dur:"60 min",week:"Semana 1",topics:"Sintaxis HCL | Bloque terraform{} provider{} resource{} | init plan apply destroy",course:"Udemy: Terraform Associate - Zeal Vora",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"https://developer.hashicorp.com/terraform/tutorials/aws-get-started"},
 {name:"Actividad bebé: clasificar colores",date:"2026-06-11",cat:"baby",dur:"20 min",week:"Semana 1",topics:"Clasificar por color o tamaño — lógica temprana",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Teoría AWS: S3 VPC Lambda",date:"2026-06-13",cat:"aws",dur:"45 min",week:"Semana 1",topics:"S3 buckets clases almacenamiento | VPC subnets públicas vs privadas | Lambda serverless triggers",course:"Udemy: Ultimate AWS - Stephane Maarek",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"https://explore.skillbuilder.aws/learn/course/134"},
-{name:"Terraform: variables outputs y plan",date:"2026-06-16",cat:"terraform",dur:"60 min",week:"Semana 1",topics:"variable{} output{} locals{} | terraform.tfvars | Tipos: string number bool list map",course:"Udemy: Terraform Associate - Zeal Vora",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"https://developer.hashicorp.com/terraform/tutorials/aws-get-started/aws-variables"},
 {name:"Actividad bebé: cuento en voz alta",date:"2026-06-13",cat:"baby",dur:"20 min",week:"Semana 1",topics:"Leer despacio y preguntar qué crees que pasa después",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Repaso AWS según necesidad",date:"2026-06-17",cat:"aws",dur:"45 min",week:"Semana 1",topics:"Diferencias entre servicios | Modelo de responsabilidad compartida",course:"Coursera: AWS Cloud Technical Essentials",link:"https://www.coursera.org/learn/aws-cloud-technical-essentials",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Simulacro AWS semana 1",date:"2026-06-19",cat:"repaso",dur:"45 min",week:"Semana 1",topics:"Simulacro parcial | Anotar errores | Meta referencia inicial",course:"Udemy: AWS Practice Exams - Neal Davis",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-practice-exams-c/",link2:"https://tutorialsdojo.com/aws-certified-cloud-practitioner/"},
 {name:"Actividad bebé: parque",date:"2026-06-15",cat:"baby",dur:"60 min",week:"Semana 1",topics:"Nombrar cosas que ven",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Descanso total",date:"2026-06-16",cat:"descanso",dur:"",week:"Semana 1",topics:"Sin pantallas de estudio",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
 // ── S2 ──
-{name:"Teoría AWS: RDS CloudWatch seguridad",date:"2026-06-20",cat:"aws",dur:"45 min",week:"Semana 2",topics:"RDS Multi-AZ vs Read Replica | CloudWatch métricas alarmas | Shield WAF GuardDuty",course:"Udemy: Ultimate AWS - Stephane Maarek",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Terraform: state y tfstate",date:"2026-06-23",cat:"terraform",dur:"60 min",week:"Semana 2",topics:"Qué es el state | tfstate estructura | No subir a git | state list show mv rm | Drift detection",course:"Udemy: Terraform Associate - Zeal Vora",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"https://developer.hashicorp.com/terraform/language/state"},
 {name:"Actividad bebé: puzzles 6 piezas",date:"2026-06-18",cat:"baby",dur:"20 min",week:"Semana 2",topics:"Dejar que resuelva solo — perseverancia",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Teoría AWS: IAM roles y políticas",date:"2026-06-24",cat:"aws",dur:"45 min",week:"Semana 2",topics:"Policies managed vs inline | Mínimo privilegio | Roles para servicios | MFA | Organizations SCPs",course:"Coursera: AWS Cloud Technical Essentials",link:"https://www.coursera.org/learn/aws-cloud-technical-essentials",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Terraform: backend remoto S3",date:"2026-06-26",cat:"terraform",dur:"60 min",week:"Semana 2",topics:"Backend S3 + DynamoDB locking | terraform { backend {} } | Estado compartido",course:"Udemy: Terraform on AWS - KodeKloud",link:"https://www.udemy.com/course/terraform-on-aws-by-kodekloud/",link2:"https://developer.hashicorp.com/terraform/language/backend/s3"},
 {name:"Actividad bebé: dibujo libre",date:"2026-06-20",cat:"baby",dur:"20 min",week:"Semana 2",topics:"No dirigir — acompañar y preguntar",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Repaso AWS: precios y soporte",date:"2026-06-27",cat:"aws",dur:"45 min",week:"Semana 2",topics:"On-demand reserved savings plans | Cost Explorer | Planes soporte | TCO Calculator",course:"Udemy: Ultimate AWS - Stephane Maarek",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Simulacro AWS semana 2",date:"2026-06-30",cat:"repaso",dur:"45 min",week:"Semana 2",topics:"Meta: superar score semana 1 | Objetivo final: >80%",course:"Udemy: AWS Practice Exams - Neal Davis",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-practice-exams-c/",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Descanso total",date:"2026-06-23",cat:"descanso",dur:"",week:"Semana 2",topics:"Descanso total",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
 // ── S3 ──
-{name:"Teoría AWS: CloudTrail Well-Architected",date:"2026-07-01",cat:"aws",dur:"45 min",week:"Semana 3",topics:"CloudTrail vs CloudWatch | Well-Architected 6 pilares | Trusted Advisor",course:"Udemy: Ultimate AWS - Stephane Maarek",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"https://aws.amazon.com/architecture/well-architected/"},
-{name:"Terraform: módulos teoría",date:"2026-07-03",cat:"terraform",dur:"60 min",week:"Semana 3",topics:"Root vs child module | main.tf variables.tf outputs.tf | module{} | Pasar variables",course:"Udemy: Terraform Associate - Zeal Vora",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"https://developer.hashicorp.com/terraform/tutorials/modules/module"},
 {name:"Actividad bebé: contar objetos",date:"2026-06-25",cat:"baby",dur:"20 min",week:"Semana 3",topics:"Contar escalones frutas juguetes",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Teoría AWS: SNS SQS ECS EKS",date:"2026-07-04",cat:"aws",dur:"45 min",week:"Semana 3",topics:"SNS vs SQS | ECS vs EKS vs Fargate | Route 53 | CloudFront | Elastic Beanstalk",course:"Coursera: AWS Cloud Technical Essentials",link:"https://www.coursera.org/learn/aws-cloud-technical-essentials",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Terraform: Lab módulo VPC",date:"2026-07-07",cat:"terraform",dur:"60 min",week:"Semana 3",topics:"Crear módulo: vpc subnets internet_gateway | Variables CIDR | Outputs: vpc_id subnet_ids",course:"Udemy: Terraform on AWS - KodeKloud",link:"https://www.udemy.com/course/terraform-on-aws-by-kodekloud/",link2:"https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest"},
 {name:"Actividad bebé: plastilina",date:"2026-06-27",cat:"baby",dur:"20 min",week:"Semana 3",topics:"Modelar formas — motricidad fina",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Repaso AWS puntos débiles",date:"2026-07-08",cat:"aws",dur:"45 min",week:"Semana 3",topics:"Errores acumulados | 20 preguntas del tema débil",course:"Udemy: AWS Practice Exams - Neal Davis",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-practice-exams-c/",link2:"",notes:"",realDur:"",postponed:false},
-{name:"🎯 Simulacro AWS completo 1",date:"2026-07-10",cat:"repaso",dur:"90 min",week:"Semana 3",topics:"Condiciones reales | Meta: >80% | Anotar exactamente qué falló",course:"Udemy: AWS Practice Exams - Neal Davis",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-practice-exams-c/",link2:"https://portal.tutorialsdojo.com/courses/free-aws-certified-cloud-practitioner-practice-exams-sampler/"},
 {name:"Descanso total",date:"2026-06-30",cat:"descanso",dur:"",week:"Semana 3",topics:"Descanso total",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
 // ── S4 AWS + AI en paralelo ──
-{name:"AWS: revisar errores simulacro 1",date:"2026-07-11",cat:"aws",dur:"45 min",week:"Semana 4",topics:"Pregunta por pregunta | POR QUÉ la correcta es correcta | No memorizar sino entender",course:"Udemy: Ultimate AWS - Stephane Maarek",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"",notes:"",realDur:"",postponed:false},
-{name:"AI: Fundamentals of AI y ML (20%)",date:"2026-07-14",cat:"ai",dur:"45 min",week:"Semana 4",topics:"Tipos de AI | Supervised vs Unsupervised | Deep Learning | Algoritmos ML | Casos de uso en AWS",course:"Udemy: AWS AI Practitioner - Stephane Maarek",link:"https://www.udemy.com/course/aws-ai-practitioner-certified/",link2:"https://www.coursera.org/learn/aws-certified-ai-practitioner"},
-{name:"Terraform: workspaces y multi-env",date:"2026-07-15",cat:"terraform",dur:"45 min",week:"Semana 4",topics:"workspace new list select | Workspaces vs módulos | terraform.workspace | Limitaciones",course:"Udemy: Terraform Associate - Zeal Vora",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Actividad bebé: bloques construcción",date:"2026-07-02",cat:"baby",dur:"20 min",week:"Semana 4",topics:"Construir torres — lógica espacial",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
-{name:"AWS: puntos débiles simulacro",date:"2026-07-16",cat:"aws",dur:"45 min",week:"Semana 4",topics:"Temas con menor puntaje | 20 preguntas específicas",course:"Coursera: AWS Cloud Technical Essentials",link:"https://www.coursera.org/learn/aws-cloud-technical-essentials",link2:"",notes:"",realDur:"",postponed:false},
-{name:"AI: Fundamentals of Generative AI (24%)",date:"2026-07-18",cat:"ai",dur:"45 min",week:"Semana 4",topics:"Foundation models | Tokens embeddings | Prompt engineering básico | Amazon Bedrock intro | Ciclo de vida FM",course:"Udemy: AWS AI Practitioner - Stephane Maarek",link:"https://www.udemy.com/course/aws-ai-practitioner-certified/",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Terraform: for_each count condicionales",date:"2026-07-20",cat:"terraform",dur:"45 min",week:"Semana 4",topics:"count vs for_each | for_each con maps | condition ? true : false | dynamic blocks | depends_on",course:"Udemy: Terraform on AWS - KodeKloud",link:"https://www.udemy.com/course/terraform-on-aws-by-kodekloud/",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Actividad bebé: cuento + preguntas",date:"2026-07-04",cat:"baby",dur:"20 min",week:"Semana 4",topics:"¿Qué siente el personaje? — empatía",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
-{name:"AWS: repaso flash cards",date:"2026-07-21",cat:"aws",dur:"45 min",week:"Semana 4",topics:"CloudWatch vs CloudTrail | SQS vs SNS | ECS vs EKS | NAT vs Internet Gateway",course:"Udemy: AWS Practice Exams - Neal Davis",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-practice-exams-c/",link2:"",notes:"",realDur:"",postponed:false},
-{name:"🎯 Simulacro AWS completo 2",date:"2026-07-23",cat:"repaso",dur:"90 min",week:"Semana 4",topics:"Meta: >80% | Comparar con simulacro 1",course:"Udemy: AWS Practice Exams - Neal Davis",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-practice-exams-c/",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Descanso total",date:"2026-07-07",cat:"descanso",dur:"",week:"Semana 4",topics:"Descanso total",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
 // ── S5 AWS cierre + AI continúa ──
-{name:"AI: Applications of Foundation Models (28%)",date:"2026-07-24",cat:"ai",dur:"45 min",week:"Semana 5",topics:"RAG | Fine-tuning vs prompt engineering | Bedrock modelos | Chatbots summarization | Evaluación FMs",course:"Udemy: AWS AI Practitioner - Stephane Maarek",link:"https://www.udemy.com/course/aws-ai-practitioner-certified/",link2:"",notes:"",realDur:"",postponed:false},
-{name:"🎯 Simulacro AWS completo 3",date:"2026-07-27",cat:"repaso",dur:"90 min",week:"Semana 5",topics:"Sin pausas ni consultas | Meta: >80%",course:"Udemy: AWS Practice Exams - Neal Davis",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-practice-exams-c/",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Terraform: Lab VPC + EC2",date:"2026-07-28",cat:"terraform",dur:"45 min",week:"Semana 5",topics:"VPC + subnets + EC2 + security groups | Variables para todo | Outputs IP pública DNS",course:"Udemy: Terraform on AWS - KodeKloud",link:"https://www.udemy.com/course/terraform-on-aws-by-kodekloud/",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Actividad bebé: canciones inglés",date:"2026-07-09",cat:"baby",dur:"20 min",week:"Semana 5",topics:"Exposición temprana al inglés",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
-{name:"AI: Responsible AI (14%)",date:"2026-07-29",cat:"ai",dur:"45 min",week:"Semana 5",topics:"Bias y fairness | Explainability | Transparencia | AWS AI Service Cards | Principios AI responsable",course:"Coursera: AWS Certified AI Practitioner - KodeKloud",link:"https://www.coursera.org/learn/aws-certified-ai-practitioner",link2:"",notes:"",realDur:"",postponed:false},
-{name:"🎯 Simulacro AWS completo 4",date:"2026-07-31",cat:"repaso",dur:"90 min",week:"Semana 5",topics:"Solo errores anteriores | Meta: >80% | Si llegas 85% agenda",course:"Udemy: AWS Practice Exams - Neal Davis",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-practice-exams-c/",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Terraform: Lab RDS + outputs",date:"2026-08-01",cat:"terraform",dur:"45 min",week:"Semana 5",topics:"Agregar RDS | engine instance_class | Security group | Output endpoint",course:"Udemy: Terraform Associate - Zeal Vora",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Actividad bebé: dibujo libre",date:"2026-07-11",cat:"baby",dur:"20 min",week:"Semana 5",topics:"Dibujar juntos",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
-{name:"AI: Security y Governance (14%)",date:"2026-08-04",cat:"ai",dur:"45 min",week:"Semana 5",topics:"AWS AI seguridad | Cumplimiento regulatorio | Data privacy en ML | Governance frameworks",course:"Udemy: AWS AI Practitioner - Stephane Maarek",link:"https://www.udemy.com/course/aws-ai-practitioner-certified/",link2:"",notes:"",realDur:"",postponed:false},
-{name:"🎯 Simulacro AWS completo 5",date:"2026-08-06",cat:"repaso",dur:"90 min",week:"Semana 5",topics:"Meta obligatoria: >80% para presentar | Solo errores restantes",course:"Udemy: AWS Practice Exams - Neal Davis",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-practice-exams-c/",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Repaso final AWS flash cards",date:"2026-08-07",cat:"aws",dur:"30 min",week:"Semana 5",topics:"Solo diferencias clave | No estudiar nuevo | Confiar en lo que sabes",course:"Udemy: Ultimate AWS - Stephane Maarek",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Descanso total",date:"2026-07-14",cat:"descanso",dur:"",week:"Semana 5",topics:"Descanso antes del examen",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
 // ── S6 EXAMEN AWS ──
-{name:"AWS: último repaso",date:"2026-08-08",cat:"aws",dur:"45 min",week:"Semana 6 Examen AWS",topics:"SOLO lo que fallaste | Máximo 2 temas | Cheat sheets",course:"Udemy: Ultimate AWS - Stephane Maarek",link:"https://www.udemy.com/course/aws-certified-cloud-practitioner-new/",link2:"https://tutorialsdojo.com/aws-cheat-sheets/"},
-{name:"AI: 1er Simulacro AI Practitioner",date:"2026-08-11",cat:"ai",dur:"60 min",week:"Semana 6 Examen AWS",topics:"65 preguntas | Anotar errores por dominio | Meta referencia",course:"Tutorials Dojo: AWS AI Practitioner Exams",link:"https://portal.tutorialsdojo.com/courses/aws-certified-ai-practitioner-aif-c01-practice-exams/",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Actividad bebé: contar y clasificar",date:"2026-07-16",cat:"baby",dur:"20 min",week:"Semana 6 Examen AWS",topics:"Clasificar juguetes por categoría",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Descanso mental",date:"2026-07-17",cat:"descanso",dur:"",week:"Semana 6 Examen AWS",topics:"No estudiar. Cerebro en consolidación.",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Descanso mental",date:"2026-07-18",cat:"descanso",dur:"",week:"Semana 6 Examen AWS",topics:"Dormir bien. Sin pantallas 8pm.",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
@@ -596,14 +623,8 @@ const INITIAL=[
 {name:"Celebrar 🎉",date:"2026-07-20",cat:"descanso",dur:"",week:"Semana 6 Examen AWS",topics:"¡Celebrar con el bebé!",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Descanso total",date:"2026-07-21",cat:"descanso",dur:"",week:"Semana 6 Examen AWS",topics:"Descanso total",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
 // ── S7 AI CIERRE ──
-{name:"AI: revisar errores simulacro 1",date:"2026-08-13",cat:"ai",dur:"45 min",week:"Semana 7 AI",topics:"Error por error | Clasificar por dominio | Reforzar el más débil",course:"Udemy: AWS AI Practitioner - Stephane Maarek",link:"https://www.udemy.com/course/aws-ai-practitioner-certified/",link2:"",notes:"",realDur:"",postponed:false},
-{name:"AI: Amazon Bedrock deep dive",date:"2026-08-15",cat:"ai",dur:"60 min",week:"Semana 7 AI",topics:"Modelos disponibles | Invocación | Knowledge Bases | Agents para Bedrock | Costos",course:"Udemy: AWS AI Practitioner - Stephane Maarek",link:"https://www.udemy.com/course/aws-ai-practitioner-certified/",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Actividad bebé: día especial",date:"2026-07-23",cat:"baby",dur:"60 min",week:"Semana 7 AI",topics:"Celebrar el logro de AWS juntos",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
-{name:"AI: SageMaker Amazon Q servicios AI",date:"2026-08-17",cat:"ai",dur:"45 min",week:"Semana 7 AI",topics:"SageMaker Studio | Amazon Q Business | Rekognition Transcribe Comprehend | Cuándo usar cada servicio",course:"Coursera: AWS Certified AI Practitioner",link:"https://www.coursera.org/learn/aws-certified-ai-practitioner",link2:"",notes:"",realDur:"",postponed:false},
-{name:"AI: repaso 5 dominios con pesos",date:"2026-08-19",cat:"ai",dur:"60 min",week:"Semana 7 AI",topics:"AI/ML 20% | GenAI 24% | FMs 28% | Responsible AI 14% | Security 14% | Flash cards por dominio",course:"Udemy: AWS AI Practitioner - Stephane Maarek",link:"https://www.udemy.com/course/aws-ai-practitioner-certified/",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Actividad bebé: puzzles difíciles",date:"2026-07-25",cat:"baby",dur:"20 min",week:"Semana 7 AI",topics:"Aumentar dificultad — tolerancia a frustración",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
-{name:"AI: flash cards diferencias clave",date:"2026-08-20",cat:"ai",dur:"45 min",week:"Semana 7 AI",topics:"FM vs LLM | RAG vs fine-tuning | Bedrock vs SageMaker | Bias types | Hallucination mitigation",course:"Udemy: AWS AI Practitioner - Stephane Maarek",link:"https://www.udemy.com/course/aws-ai-practitioner-certified/",link2:"",notes:"",realDur:"",postponed:false},
-{name:"🎯 Simulacro AI Practitioner 2 — ÚLTIMO",date:"2026-08-22",cat:"repaso",dur:"90 min",week:"Semana 7 AI",topics:"65 preguntas 90 min | Meta: >80% (700/1000) | Condiciones reales",course:"Tutorials Dojo: AWS AI Practitioner Exams",link:"https://portal.tutorialsdojo.com/courses/aws-certified-ai-practitioner-aif-c01-practice-exams/",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Descanso mental",date:"2026-07-28",cat:"descanso",dur:"",week:"Semana 7 AI",topics:"Sin estudio. Dormir temprano.",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Descanso mental",date:"2026-07-29",cat:"descanso",dur:"",week:"Semana 7 AI",topics:"Cerebro en consolidación.",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Descanso mental",date:"2026-07-30",cat:"descanso",dur:"",week:"Semana 7 AI",topics:"Dormir bien.",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
@@ -612,34 +633,16 @@ const INITIAL=[
 {name:"🏆 EXAMEN AWS AI Practitioner",date:"2026-09-05",cat:"examen",dur:"",week:"Semana 7 AI",topics:"65 preguntas | 90 minutos | Score mínimo 700/1000 | Desayunar bien.",course:"",link:"https://aws.amazon.com/certification/certified-ai-practitioner/",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Celebrar 🎉 AI Practitioner",date:"2026-08-04",cat:"descanso",dur:"",week:"Semana 7 AI",topics:"¡Dos certs en el bolsillo!",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
 // ── S8 TERRAFORM ──
-{name:"Terraform: revisar errores simulacro 1",date:"2026-08-25",cat:"terraform",dur:"45 min",week:"Semana 8 Terraform",topics:"Analizar errores | Clasificar: state modules workflow",course:"Udemy: Terraform Associate - Zeal Vora",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Terraform: state avanzado y locking",date:"2026-08-28",cat:"terraform",dur:"60 min",week:"Semana 8 Terraform",topics:"state mv rm pull push | Locking DynamoDB | force-unlock | terraform refresh",course:"Udemy: Terraform on AWS - KodeKloud",link:"https://www.udemy.com/course/terraform-on-aws-by-kodekloud/",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Actividad bebé: cuento interactivo",date:"2026-08-06",cat:"baby",dur:"20 min",week:"Semana 8 Terraform",topics:"Inventar el final del cuento",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Terraform: funciones built-in",date:"2026-08-29",cat:"terraform",dur:"45 min",week:"Semana 8 Terraform",topics:"format join split | length toset tomap | lookup merge | terraform console",course:"Udemy: Terraform Associate - Zeal Vora",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"https://developer.hashicorp.com/terraform/language/functions"},
-{name:"Terraform: Lab módulos reutilizables",date:"2026-09-01",cat:"terraform",dur:"60 min",week:"Semana 8 Terraform",topics:"Variables con defaults | README | Versionar con source y version",course:"Udemy: Terraform on AWS - KodeKloud",link:"https://www.udemy.com/course/terraform-on-aws-by-kodekloud/",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Actividad bebé: construcción bloques",date:"2026-08-08",cat:"baby",dur:"20 min",week:"Semana 8 Terraform",topics:"Construir siguiendo un plan",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Terraform: repaso semana 8",date:"2026-09-02",cat:"terraform",dur:"45 min",week:"Semana 8 Terraform",topics:"state | funciones | módulos | fmt validate",course:"Udemy: Terraform Associate - Zeal Vora",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"",notes:"",realDur:"",postponed:false},
-{name:"🎯 Simulacro Terraform 2",date:"2026-09-04",cat:"repaso",dur:"90 min",week:"Semana 8 Terraform",topics:"Meta: >80% | Comparar con simulacro 1",course:"Udemy: Terraform Practice Exams - Bryan Krausen",link:"https://www.udemy.com/course/terraform-associate-practice-exam/",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Descanso total",date:"2026-08-11",cat:"descanso",dur:"",week:"Semana 8 Terraform",topics:"Descanso total",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
 // ── S9 TERRAFORM ──
-{name:"Terraform: provisioners y null_resource",date:"2026-09-05",cat:"terraform",dur:"45 min",week:"Semana 9 Terraform",topics:"local-exec vs remote-exec | null_resource | Por qué evitar provisioners",course:"Udemy: Terraform Associate - Zeal Vora",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Terraform: Lab CI/CD",date:"2026-09-08",cat:"terraform",dur:"60 min",week:"Semana 9 Terraform",topics:"Pipeline | TF_VAR_ | apply -auto-approve | .gitignore para Terraform",course:"Udemy: Terraform on AWS - KodeKloud",link:"https://www.udemy.com/course/terraform-on-aws-by-kodekloud/",link2:"https://developer.hashicorp.com/terraform/tutorials/automation/automate-terraform"},
 {name:"Actividad bebé: dibujo y colores",date:"2026-08-13",cat:"baby",dur:"20 min",week:"Semana 9 Terraform",topics:"Pintar con pinceles",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Terraform: Terraform Cloud",date:"2026-09-09",cat:"terraform",dur:"45 min",week:"Semana 9 Terraform",topics:"TF Cloud vs OSS | Workspaces | Remote runs | VCS integration | Sentinel",course:"Udemy: Terraform Associate - Zeal Vora",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"https://developer.hashicorp.com/terraform/tutorials/cloud-get-started"},
-{name:"Terraform: Lab proyecto completo",date:"2026-09-11",cat:"terraform",dur:"60 min",week:"Semana 9 Terraform",topics:"VPC + EC2 + RDS + S3 con módulos | Backend S3 + DynamoDB | README documentado",course:"Udemy: Terraform on AWS - KodeKloud",link:"https://www.udemy.com/course/terraform-on-aws-by-kodekloud/",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Actividad bebé: música y baile",date:"2026-08-15",cat:"baby",dur:"30 min",week:"Semana 9 Terraform",topics:"Bailar y cantar juntos",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Terraform: repaso semana 9",date:"2026-09-12",cat:"terraform",dur:"45 min",week:"Semana 9 Terraform",topics:"TF Cloud | provisioners | CI/CD | Cheat sheet comandos",course:"Udemy: Terraform Practice Exams - Bryan Krausen",link:"https://www.udemy.com/course/terraform-associate-practice-exam/",link2:"",notes:"",realDur:"",postponed:false},
-{name:"🎯 Simulacro Terraform 3",date:"2026-09-15",cat:"repaso",dur:"90 min",week:"Semana 9 Terraform",topics:"Meta: >80% | Si no identificar patrón",course:"Udemy: Terraform Practice Exams - Bryan Krausen",link:"https://www.udemy.com/course/terraform-associate-practice-exam/",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Descanso total",date:"2026-08-18",cat:"descanso",dur:"",week:"Semana 9 Terraform",topics:"Descanso total",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
 // ── S10 TERRAFORM EXAMEN ──
-{name:"Terraform: revisar errores sim 3",date:"2026-09-16",cat:"terraform",dur:"45 min",week:"Semana 10 Terraform",topics:"Error por error | Concepto no memorización",course:"Udemy: Terraform Associate - Zeal Vora",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"",notes:"",realDur:"",postponed:false},
-{name:"🎯 Simulacro Terraform 4",date:"2026-09-18",cat:"repaso",dur:"90 min",week:"Semana 10 Terraform",topics:"Meta: >80% | Si >85% agenda examen",course:"Udemy: Terraform Practice Exams - Bryan Krausen",link:"https://www.udemy.com/course/terraform-associate-practice-exam/",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Actividad bebé: contar objetos",date:"2026-08-20",cat:"baby",dur:"20 min",week:"Semana 10 Terraform",topics:"Contar pasos o frutas",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Terraform: revisar errores sim 4",date:"2026-09-19",cat:"terraform",dur:"45 min",week:"Semana 10 Terraform",topics:"Temas que siguen fallando | Ejercicio práctico en terminal",course:"Udemy: Terraform Associate - Zeal Vora",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"",notes:"",realDur:"",postponed:false},
-{name:"🎯 Simulacro Terraform 5 — ÚLTIMO",date:"2026-09-22",cat:"repaso",dur:"90 min",week:"Semana 10 Terraform",topics:"Meta obligatoria: >80% para presentar | Sin consultar",course:"Udemy: Terraform Practice Exams - Bryan Krausen",link:"https://www.udemy.com/course/terraform-associate-practice-exam/",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Actividad bebé: parque",date:"2026-08-22",cat:"baby",dur:"60 min",week:"Semana 10 Terraform",topics:"Explorar y nombrar el entorno",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Terraform: flash cards repaso final",date:"2026-09-23",cat:"terraform",dur:"45 min",week:"Semana 10 Terraform",topics:"taint vs replace | import vs moved | refresh vs plan | local vs remote backend",course:"Udemy: Terraform Practice Exams - Bryan Krausen",link:"https://www.udemy.com/course/terraform-associate-practice-exam/",link2:"",notes:"",realDur:"",postponed:false},
-{name:"Terraform: repaso puntos débiles",date:"2026-09-25",cat:"terraform",dur:"45 min",week:"Semana 10 Terraform",topics:"Solo temas con duda | No estudiar nuevo | Confiar en el trabajo hecho",course:"Udemy: Terraform Associate - Zeal Vora",link:"https://www.udemy.com/course/terraform-beginner-to-advanced/",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Descanso mental",date:"2026-08-25",cat:"descanso",dur:"",week:"Semana 10 Terraform",topics:"Descanso total",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
 {name:"Descanso mental",date:"2026-08-26",cat:"descanso",dur:"",week:"Semana 10 Terraform",topics:"Dormir temprano",course:"",link:"",link2:"",notes:"",realDur:"",postponed:false},
 {name:"🏆 EXAMEN Terraform Associate",date:"2026-09-20",cat:"examen",dur:"",week:"Semana 10 Terraform",topics:"Desayunar bien. Leer cada pregunta con calma.",course:"",link:"https://www.hashicorp.com/certification/terraform-associate",link2:"",notes:"",realDur:"",postponed:false},
@@ -1040,7 +1043,7 @@ const BABY_DAILY=[
 // reutilización constante (writing/speaking siempre usan la gramática de la
 // semana + vocab de repaso) y evaluación cada 4 semanas (Cambridge/BC gratis).
 // Los ítems se GENERAN con buildEnglishEntries() — no viven en INITIAL.
-const EN_START='2026-07-20'; // lunes
+const EN_START='2026-07-13'; // lunes — mismo día del reinicio del plan
 
 // Ciclo semanal fijo: cada día trabaja una destreza principal sobre el tema de la semana.
 const EN_ROLES=[
@@ -1291,7 +1294,16 @@ async function deleteRow(id){
     if(!res.ok) throw new Error('HTTP '+res.status);
     localStorage.setItem('studyplan_backup',JSON.stringify(data));
   }catch(e){
+    console.error('[deleteRow]',id,e.message);
     localStorage.setItem('studyplan_backup',JSON.stringify(data));
+  }
+}
+
+// Borra un lote de filas de DynamoDB en paralelo controlado (chunks de 25)
+async function _deleteRows(ids){
+  const CHUNK=25;
+  for(let i=0;i<ids.length;i+=CHUNK){
+    await Promise.all(ids.slice(i,i+CHUNK).map(id=>deleteRow(id)));
   }
 }
 
@@ -1333,13 +1345,26 @@ async function loadData(){
         postponed:r.postponed==='TRUE'||r.postponed===true||r.postponed==='true'
       }));
       const beforeDedup=data.length;
+      const rawRows=data;
       data=deduplicateData(data);
       const dedupChanged=data.length<beforeDedup;
+      // Purga de zombis: lo que el dedup descarta quedaba en DynamoDB para
+      // siempre (solo se ocultaba en pantalla) y renacía en cada carga.
+      // Ahora se borra de verdad. Cinturones: tope de 800 y dataset retenido
+      // sano (>=200). Sin await: los ids ya no están en pantalla y si la
+      // página se cierra a medias, la próxima carga continúa donde quedó.
+      if(dedupChanged){
+        const keptIds=new Set(data.map(d=>String(d.id)));
+        const zombieIds=[...new Set(rawRows.map(r=>String(r.id)))].filter(id=>!keptIds.has(id));
+        if(zombieIds.length&&zombieIds.length<=800&&data.length>=200) _deleteRows(zombieIds).catch(()=>{});
+      }
       localStorage.setItem('studyplan_backup',JSON.stringify(data));
       await mergeAIEngEntries();
       await refreshCcaInfo();
       await replanCerts2026();          // antes del merge de inglés: así el
+      await upgradeCertCurriculum();    // temario v2 fija las fechas de examen finales
       await mergeEnglishEntries();      // plan de inglés salta las fechas de examen nuevas
+      await cleanupRestart();
       const migrated=await migrateDates2026();
       if(dedupChanged&&!migrated) await saveData(); // persist dedup if migration didn't save
     } else {
@@ -1571,8 +1596,10 @@ function certPhase(d){
   return null;
 }
 
-async function replanCerts2026(){
-  if(localStorage.getItem(REPLAN_KEY)==='done')return;
+// Empaqueta TODOS los ítems cert pendientes 1/día lun–sáb desde hoy, por fases
+// en orden, y coloca cada examen 2 días después del último ítem de su fase.
+// Reutilizado por el replan y por el upgrade de currículo.
+function packCertPhases(){
   const exams={
     aws:data.find(d=>d.cat==='examen'&&/Cloud Practitioner/.test(d.name||'')),
     ai:data.find(d=>d.cat==='examen'&&/AI Practitioner/.test(d.name||'')),
@@ -1580,9 +1607,6 @@ async function replanCerts2026(){
     cca:data.find(d=>d.cat==='examen'&&/CCA/.test(d.name||'')),
     saa:data.find(d=>d.cat==='examen'&&/Solutions Architect/.test(d.name||'')),
   };
-  const stale=(exams.saa&&exams.saa.date==='2026-12-20')||(exams.cca&&exams.cca.date==='2027-03-15');
-  if(!stale){localStorage.setItem(REPLAN_KEY,'done');return;}
-
   // Fechas de examen del plan viejo: si un examen nuevo cayera en una de estas,
   // la migración v4 podría re-dispararse en un dispositivo sin flag — evitarlas.
   const V4_DATES=new Set(['2026-07-19','2026-08-03','2026-08-27','2026-09-29','2026-11-24']);
@@ -1607,10 +1631,106 @@ async function replanCerts2026(){
     // descanso post-examen antes de la siguiente fase
     cur.setDate(cur.getDate()+2);
   }
+}
+
+async function replanCerts2026(){
+  if(localStorage.getItem(REPLAN_KEY)==='done')return;
+  const saaExam=data.find(d=>d.cat==='examen'&&/Solutions Architect/.test(d.name||''));
+  const ccaExam=data.find(d=>d.cat==='examen'&&/CCA/.test(d.name||''));
+  const stale=(saaExam&&saaExam.date==='2026-12-20')||(ccaExam&&ccaExam.date==='2027-03-15');
+  if(!stale){localStorage.setItem(REPLAN_KEY,'done');return;}
+  packCertPhases();
   localStorage.setItem(MIGATION_KEY,'done'); // la migración v4 queda obsoleta tras el replan
   localStorage.setItem(REPLAN_KEY,'done');
   await saveData();
   showStatus('📅 Plan reiniciado desde hoy: CP → AI → Terraform → Claude F. (2026) + SAA (2027)','var(--terraform)');
+}
+
+// ── CURRÍCULO v2: CP / AI Practitioner / Terraform ────────────────────────────
+// Reemplaza el temario escueto por 64 sesiones diarias segmentadas (un solo
+// tema por sesión de 30-45 min, semanas temáticas, repaso semanal, simulacros
+// al cierre). Borra los ítems PENDIENTES viejos de esas 3 certs (incluidos sus
+// simulacros), inserta el temario nuevo desde INITIAL y re-empaqueta todas las
+// fases (recalcula las fechas de examen). Lo done se conserva.
+// One-shot cross-device: detecta por el prefijo de semana nuevo 'CP S'.
+async function upgradeCertCurriculum(){
+  if(data.some(d=>d.cat==='aws'&&(d.week||'').startsWith('CP S')))return;
+  const targets=new Set(['aws','ai','terraform']);
+  const oldItems=data.filter(d=>!d.done&&d.cat!=='examen'&&targets.has(certPhase(d)||''));
+  if(oldItems.length){
+    const ids=new Set(oldItems.map(d=>d.id));
+    data=data.filter(d=>!ids.has(d.id));
+    await _deleteRows([...ids].map(String));
+  }
+  const maxId=data.reduce((m,d)=>Math.max(m,Number(d.id)||0),0);
+  const fresh=INITIAL.filter(d=>d.cat!=='examen'&&targets.has(certPhase(d)||''))
+    .map((d,i)=>({...d,id:maxId+i+1,done:false,postponed:false,notes:'',realDur:'',
+      links:migrateLegacyLinks(d)}));
+  data=data.concat(fresh);
+  packCertPhases();
+  data.sort((a,b)=>a.date.localeCompare(b.date));
+  await saveData();
+  showStatus('📚 Temario CP/AI/Terraform rediseñado: 1 tema por sesión ('+fresh.length+' días)','var(--aws)');
+}
+
+// ── LIMPIEZA DE REINICIO (13-jul-2026) ────────────────────────────────────────
+// Complementa el replan: NADA puede quedar antes del 13 de julio, ni pendiente
+// ni completado — el usuario no quiere ver ningún día anterior al reinicio.
+// - TODO lo done anterior al corte → se elimina
+// - baby/descanso pendientes anteriores al corte → se eliminan
+// - certs pendientes anteriores al corte (huérfanos de duplicados) → se mueven a hoy
+// - aieng con pendientes viejos → TODOS los pendientes se re-empaquetan 1/día
+//   desde hoy (salta domingos y fechas de examen)
+// - inglés → si el plan quedó generado con el arranque viejo (20-jul) y nada
+//   está done, se regenera completo desde EN_START (13-jul)
+// Idempotente entre dispositivos: usa el corte fijo RESTART_CUTOFF y detección
+// por contenido — tras la primera corrida ya no hay nada que matchee.
+const RESTART_CUTOFF='2026-07-13';
+async function cleanupRestart(){
+  const today=getTodayStr();
+  const old=d=>(d.date||'')<RESTART_CUTOFF;
+  const pendingOld=d=>!d.done&&old(d);
+
+  const toDelete=data.filter(d=>(d.done&&old(d))||(pendingOld(d)&&(d.cat==='baby'||d.cat==='descanso')));
+  const strayCerts=data.filter(d=>pendingOld(d)&&certPhase(d));
+  const aiengStale=data.some(d=>pendingOld(d)&&d.cat==='aieng');
+  const engItems=data.filter(d=>(d.week||'').startsWith('English S'));
+  const engMin=engItems.reduce((m,d)=>d.date<m?d.date:m,'9999-99-99');
+  const engStale=engItems.length>0&&engMin>RESTART_CUTOFF&&engItems.every(d=>!d.done);
+
+  if(!toDelete.length&&!strayCerts.length&&!aiengStale&&!engStale)return;
+
+  if(toDelete.length){
+    const ids=new Set(toDelete.map(d=>d.id));
+    data=data.filter(d=>!ids.has(d.id));
+    await _deleteRows([...ids].map(String));
+  }
+
+  strayCerts.forEach(d=>{d.date=today;d.postponed=false;});
+
+  if(aiengStale){
+    const ex=new Set(data.filter(d=>d.cat==='examen').map(d=>d.date));
+    const cur=parseLocalDate(today);
+    data.filter(d=>d.cat==='aieng'&&!d.done)
+      .sort((a,b)=>a.date.localeCompare(b.date))
+      .forEach(it=>{
+        while(cur.getDay()===0||ex.has(fmtLocalDate(cur)))cur.setDate(cur.getDate()+1);
+        it.date=fmtLocalDate(cur);
+        cur.setDate(cur.getDate()+1);
+      });
+  }
+
+  if(engStale){
+    const ids=new Set(engItems.map(d=>d.id));
+    data=data.filter(d=>!ids.has(d.id));
+    await _deleteRows([...ids].map(String));
+    const maxId=data.reduce((m,d)=>Math.max(m,Number(d.id)||0),0);
+    data=data.concat(buildEnglishEntries(maxId+1));
+  }
+
+  data.sort((a,b)=>a.date.localeCompare(b.date));
+  await saveData();
+  showStatus('🧹 Plan pendiente reorganizado: todo arranca desde hoy','var(--terraform)');
 }
 
 function addDailyBabyActivities(){
