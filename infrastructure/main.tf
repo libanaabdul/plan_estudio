@@ -30,9 +30,22 @@ resource "aws_dynamodb_table" "study_plan" {
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "id"
 
+  # La tabla guarda todo el progreso del plan y no hay otro backup automático:
+  # PITR permite restaurar cualquier punto de los últimos 35 días, y las dos
+  # protecciones de borrado evitan que un apply/delete accidental la destruya.
+  deletion_protection_enabled = true
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
   attribute {
     name = "id"
     type = "S"
+  }
+
+  lifecycle {
+    prevent_destroy = true
   }
 
   tags = {

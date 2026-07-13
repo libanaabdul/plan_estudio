@@ -1064,6 +1064,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     .addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('login-password').focus();});
 });
 
+// Única fuente de la URL del API (no se inyecta por CI: es pública en el HTML
+// servido y lo que protege el API es Cognito). Si se recrea el API Gateway,
+// actualizar esta constante con `terraform output api_url`.
 const API_URL='https://dstlpawd97.execute-api.us-east-1.amazonaws.com/prod';
 
 // Daily baby activities rotation
@@ -1099,13 +1102,22 @@ let currentMonth=new Date(2026,5,15);
 let editingId=null;
 let linkRows=[];
 
-function getTodayStr(){
-  const d=new Date();
+// Todas las fechas del plan se manejan en hora LOCAL del navegador.
+// Nunca usar toISOString() ni new Date('YYYY-MM-DD') (parsean/formatean en UTC
+// y corren las fechas un día en husos horarios negativos): usar estos helpers.
+function fmtLocalDate(d){
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function parseLocalDate(ds){
+  const [y,m,d]=ds.slice(0,10).split('-').map(Number);
+  return new Date(y,m-1,d);
+}
+function getTodayStr(){
+  return fmtLocalDate(new Date());
 }
 function getTomorrowStr(){
   const d=new Date();d.setDate(d.getDate()+1);
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  return fmtLocalDate(d);
 }
 
 function catLabel(c){
@@ -1293,9 +1305,9 @@ async function migrateDates2026(){
   if(hasOldCert||certDup||examNeedsUpdate){
     const undoneCerts=certEntries.filter(d=>!d.done);
     const studyDays=[];
-    const cur=new Date(today);
+    const cur=parseLocalDate(today);
     while(studyDays.length<undoneCerts.length){
-      const ds=cur.toISOString().slice(0,10);
+      const ds=fmtLocalDate(cur);
       if(cur.getDay()!==0&&!examDates.has(ds)) studyDays.push(ds);
       cur.setDate(cur.getDate()+1);
     }
@@ -1306,9 +1318,9 @@ async function migrateDates2026(){
   if(aiengNeedsJuly||aiengDup){
     const undoneAieng=aiengEntries.filter(d=>!d.done);
     const aiengDays=[];
-    const cur2=new Date('2026-07-01');
+    const cur2=parseLocalDate('2026-07-01');
     while(aiengDays.length<undoneAieng.length){
-      const ds=cur2.toISOString().slice(0,10);
+      const ds=fmtLocalDate(cur2);
       if(cur2.getDay()!==0&&!examDates.has(ds)) aiengDays.push(ds);
       cur2.setDate(cur2.getDate()+1);
     }
@@ -1318,9 +1330,9 @@ async function migrateDates2026(){
   // Mover baby viejos al inicio del plan
   if(hasOldBaby){
     data.filter(d=>d.cat==='baby'&&d.date<'2026-06-15').forEach(d=>{
-      const old=new Date(d.date);
+      const old=parseLocalDate(d.date);
       old.setDate(old.getDate()+45);
-      const shifted=old.toISOString().slice(0,10);
+      const shifted=fmtLocalDate(old);
       d.date=shifted<'2026-06-15'?'2026-06-15':shifted;
     });
   }
@@ -1390,7 +1402,7 @@ function addDailyBabyActivities(){
   let babyIdx=0;
 
   for(let d=new Date(startDate);d<=endDate;d.setDate(d.getDate()+1)){
-    const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const ds=fmtLocalDate(d);
     const dow=d.getDay();
     if(dow===0) continue; // skip sundays
 
@@ -1445,9 +1457,9 @@ function updateStats(){
 
   // Streak
   let streak=0;
-  const d=new Date(today);
+  const d=parseLocalDate(today);
   while(true){
-    const ds=d.toISOString().slice(0,10);
+    const ds=fmtLocalDate(d);
     const hasDone=data.some(x=>x.date===ds&&x.done&&x.cat!=='descanso');
     if(!hasDone)break;
     streak++;
@@ -1524,14 +1536,14 @@ function renderToday(){
         ${item.dur?`<span style="color:var(--muted);font-size:.62rem">⏱${item.dur}</span>`:''}
       </div>`).join('');
 
-  // This week
+  // This week — comparación por string YYYY-MM-DD para evitar mezclar hora local y UTC
   const weekStart=new Date(now);
   weekStart.setDate(now.getDate()-now.getDay()+1);
   const weekEnd=new Date(weekStart);weekEnd.setDate(weekStart.getDate()+6);
-  const weekItems=data.filter(d=>{
-    const dd=new Date(d.date);
-    return dd>=weekStart&&dd<=weekEnd&&d.date!==today&&d.date!==tomorrow&&(activeFilter==='all'||d.cat===activeFilter);
-  });
+  const ws=fmtLocalDate(weekStart),we=fmtLocalDate(weekEnd);
+  const weekItems=data.filter(d=>
+    d.date>=ws&&d.date<=we&&d.date!==today&&d.date!==tomorrow&&(activeFilter==='all'||d.cat===activeFilter)
+  );
   const weekDiv=document.getElementById('week-today-list');
   if(weekItems.length===0){weekDiv.innerHTML='';return;}
   const byDay={};
@@ -1560,12 +1572,25 @@ function rescheduleOverdue(){
 }
 
 // ── CALENDAR ──
+// Límites de navegación derivados de los datos (mes mínimo y máximo del plan),
+// para que el calendario no quede bloqueado cuando el plan cruce de año.
+function calBounds(){
+  let min='2026-06',max='2027-03';
+  data.forEach(d=>{
+    const m=(d.date||'').slice(0,7);
+    if(m){if(m<min)min=m;if(m>max)max=m;}
+  });
+  return {min,max};
+}
+
 function renderCalendar(){
   const year=currentMonth.getFullYear(),month=currentMonth.getMonth();
   const months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   document.getElementById('cal-title').textContent=months[month]+' '+year;
-  document.getElementById('btn-prev').disabled=(year===2026&&month===3);
-  document.getElementById('btn-next').disabled=(year===2026&&month===11);
+  const ym=year+'-'+String(month+1).padStart(2,'0');
+  const bounds=calBounds();
+  document.getElementById('btn-prev').disabled=ym<=bounds.min;
+  document.getElementById('btn-next').disabled=ym>=bounds.max;
   const grid=document.getElementById('cal-grid');
   const days=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
   let html=days.map(d=>`<div class="cal-day-header">${d}</div>`).join('');
@@ -1599,11 +1624,13 @@ function handleDayClick(e,date){
 }
 
 function prevMonth(){
-  if(currentMonth.getFullYear()===2026&&currentMonth.getMonth()===5)return;
+  const ym=currentMonth.getFullYear()+'-'+String(currentMonth.getMonth()+1).padStart(2,'0');
+  if(ym<=calBounds().min)return;
   currentMonth.setMonth(currentMonth.getMonth()-1);renderCalendar();
 }
 function nextMonth(){
-  if(currentMonth.getFullYear()===2026&&currentMonth.getMonth()===11)return;
+  const ym=currentMonth.getFullYear()+'-'+String(currentMonth.getMonth()+1).padStart(2,'0');
+  if(ym>=calBounds().max)return;
   currentMonth.setMonth(currentMonth.getMonth()+1);renderCalendar();
 }
 

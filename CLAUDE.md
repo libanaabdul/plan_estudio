@@ -56,9 +56,10 @@ plan_estudio/
 ### Frontend (`deploy-frontend.yml`)
 - Se dispara con push a `main` si cambia `frontend/**`
 - Inyecta secrets via `sed` en el HTML antes de deployar:
-  - `__API_URL__` → secret `API_URL`
   - `__COGNITO_CLIENT_ID__` → secret `COGNITO_CLIENT_ID`
   - `__COGNITO_REGION__` → secret `COGNITO_REGION`
+- El build **falla** si faltan los secrets de Cognito o si queda algún placeholder sin reemplazar
+- `API_URL` **NO se inyecta**: está hardcodeada en `frontend/index.html` (es pública en el HTML servido; Cognito es lo que protege el API). Si se recrea el API Gateway, actualizar la constante con `terraform output api_url`
 - Publica en rama `gh-pages` con `cname: tracker.cloudreviews.me`
 - **Tarda ~2 min**
 
@@ -147,12 +148,12 @@ getAll (DynamoDB)
 
 | Cert | Fecha target |
 |------|-------------|
-| AWS Cloud Practitioner | 1 Julio 2026 |
-| AWS AI Practitioner | 3 Agosto 2026 |
-| Terraform Associate | 23 Agosto 2026 |
-| Claude CCA | 29 Septiembre 2026 |
-| AWS SAA | ~24 Noviembre 2026 |
-| AI Engineer | Octubre 2026 |
+| AWS Cloud Practitioner | 5 Agosto 2026 |
+| AWS AI Practitioner | 5 Septiembre 2026 |
+| Terraform Associate | 20 Septiembre 2026 |
+| AWS SAA | 20 Diciembre 2026 |
+| Claude CCA Foundations | 15 Marzo 2027 |
+| AI Engineer | Q1 2027 |
 
 **Regla de días cert**: 1 cert/día lunes-sábado desde 2026-06-15.
 **AI Eng es independiente**: 1 aieng/día desde 2026-07-01, en su propia vista. No se mezcla con la vista Hoy.
@@ -209,7 +210,7 @@ getAll (DynamoDB)
 
 | Secret | Dónde se usa |
 |--------|-------------|
-| `API_URL` | URL de API Gateway, inyectada en el HTML |
+| `API_URL` | **Ya no se usa** — la URL está hardcodeada en `frontend/index.html` (se puede borrar el secret) |
 | `COGNITO_CLIENT_ID` | ID del App Client de Cognito |
 | `COGNITO_REGION` | `us-east-1` |
 | `AWS_ACCESS_KEY_ID` | CI backend para Terraform |
@@ -238,10 +239,13 @@ cd infrastructure && terraform output api_url
 
 ---
 
-## Estado actual (July 5, 2026)
+## Estado actual (July 13, 2026)
 
 - Plan cert activo desde 2026-06-15 (Libi estudia Terraform + AWS Cloud Practitioner)
 - AI Engineer separado en su propia vista; migración automática redistribuye a 2026-07-01+
 - Lambda funcional: CORS correcto, strings vacíos filtrados, dedup por ID
 - Frontend: chunks de 50, dedup por ID y por contenido
-- Último cambio relevante: commit `1e64aeb` — vista AI Eng separada + fechas Julio
+- DynamoDB con PITR (35 días) + deletion protection + `prevent_destroy` en Terraform
+- Fechas: TODO en hora local del navegador — usar `fmtLocalDate`/`parseLocalDate`, nunca `toISOString()` ni `new Date('YYYY-MM-DD')`
+- Calendario: límites de navegación dinámicos (`calBounds()` deriva min/max de los datos)
+- Eliminados `index.html` y `CNAME` de la raíz (copias obsoletas; lo real vive en `frontend/`)

@@ -20,19 +20,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Inject the real API URL into the HTML before deploying.
-      # Set API_URL as a secret in: Settings → Secrets → Actions → New repository secret
-      - name: Inject API URL and Cognito config
+      # Inject the Cognito config into the HTML before deploying.
+      # API_URL is NOT injected: it lives hardcoded in frontend/index.html
+      # (it is public in the served HTML anyway; Cognito is what protects the API).
+      - name: Inject Cognito config
         run: |
-          if [ -z "${{ secrets.API_URL }}" ]; then
-            echo "⚠️  Warning: API_URL secret is not set."
+          if [ -z "${{ secrets.COGNITO_CLIENT_ID }}" ] || [ -z "${{ secrets.COGNITO_REGION }}" ]; then
+            echo "❌ COGNITO_CLIENT_ID / COGNITO_REGION secrets are not set — deploying without them would break login."
+            exit 1
           fi
-          if [ -z "${{ secrets.COGNITO_CLIENT_ID }}" ]; then
-            echo "⚠️  Warning: COGNITO_CLIENT_ID secret is not set. Login will be skipped in dev mode."
-          fi
-          sed -i "s|__API_URL__|${{ secrets.API_URL }}|g" frontend/index.html
           sed -i "s|__COGNITO_CLIENT_ID__|${{ secrets.COGNITO_CLIENT_ID }}|g" frontend/index.html
           sed -i "s|__COGNITO_REGION__|${{ secrets.COGNITO_REGION }}|g" frontend/index.html
+          if grep -q "__COGNITO_CLIENT_ID__\|__COGNITO_REGION__" frontend/index.html; then
+            echo "❌ Placeholder replacement failed."
+            exit 1
+          fi
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
