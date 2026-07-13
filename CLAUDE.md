@@ -135,6 +135,15 @@ getAll (DynamoDB)
 ### Multi-select
 - Botón "Seleccionar" en la vista diaria para seleccionar actividades y moverlas a otra fecha
 
+### Plan de inglés A2→B1 (`ENGLISH_PLAN` + `buildEnglishEntries`)
+- Curso estructurado de 24 semanas (6 módulos de 4: 3 contenido + 1 repaso/evaluación), lun–sáb desde **2026-07-20**, 30–40 min/día
+- Los ítems NO viven en INITIAL: se **generan** con `buildEnglishEntries()` desde `ENGLISH_PLAN` (24 semanas) × `EN_ROLES` (ciclo semanal fijo: Gramática → Vocab+Reading → Listening → Speaking → Writing → Repaso+test)
+- Repaso espaciado automático: cada semana referencia el vocab de las semanas de contenido ≈ n-1 y n-3 (las de repaso se saltan)
+- Salta domingos y fechas de examen (el ítem se omite, no se corre)
+- `mergeEnglishEntries()` (en `loadData`) lo agrega una vez a datos existentes — detecta por prefijo de week `'English S'` — y elimina las "Clase de inglés" genéricas pendientes (las done quedan como historial)
+- `cat='english'` NO está en `CERT_CATS`: es pista independiente, no entra en la redistribución de certs
+- Aparece en Hoy/calendario/tabla/semanas como una actividad diaria más
+
 ### Vista AI Eng (`view-aieng`)
 - Tab propio "🧠 AI Eng" en el nav — separado de la vista Hoy
 - Los ítems `aieng` NO aparecen en Hoy/overdue/mañana/esta semana ni en `rescheduleOverdue`
@@ -157,6 +166,7 @@ getAll (DynamoDB)
 
 **Regla de días cert**: 1 cert/día lunes-sábado desde 2026-06-15.
 **AI Eng es independiente**: 1 aieng/día desde 2026-07-01, en su propia vista. No se mezcla con la vista Hoy.
+**Inglés es independiente**: 1 english/día (30–40 min) lunes-sábado desde 2026-07-20, 24 semanas A2→B1, generado por `buildEnglishEntries()`. Sí aparece en la vista Hoy.
 
 ---
 
@@ -249,3 +259,4 @@ cd infrastructure && terraform output api_url
 - Fechas: TODO en hora local del navegador — usar `fmtLocalDate`/`parseLocalDate`, nunca `toISOString()` ni `new Date('YYYY-MM-DD')`
 - Calendario: límites de navegación dinámicos (`calBounds()` deriva min/max de los datos)
 - Eliminados `index.html` y `CNAME` de la raíz (copias obsoletas; lo real vive en `frontend/`)
+- Plan de inglés A2→B1 integrado: 142 actividades generadas (24 semanas desde 2026-07-20); las "Clase de inglés" genéricas fueron reemplazadas
