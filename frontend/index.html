@@ -1040,7 +1040,7 @@ const BABY_DAILY=[
 // reutilización constante (writing/speaking siempre usan la gramática de la
 // semana + vocab de repaso) y evaluación cada 4 semanas (Cambridge/BC gratis).
 // Los ítems se GENERAN con buildEnglishEntries() — no viven en INITIAL.
-const EN_START='2026-07-20'; // lunes
+const EN_START='2026-07-13'; // lunes — mismo día del reinicio del plan
 
 // Ciclo semanal fijo: cada día trabaja una destreza principal sobre el tema de la semana.
 const EN_ROLES=[
@@ -1291,7 +1291,16 @@ async function deleteRow(id){
     if(!res.ok) throw new Error('HTTP '+res.status);
     localStorage.setItem('studyplan_backup',JSON.stringify(data));
   }catch(e){
+    console.error('[deleteRow]',id,e.message);
     localStorage.setItem('studyplan_backup',JSON.stringify(data));
+  }
+}
+
+// Borra un lote de filas de DynamoDB en paralelo controlado (chunks de 25)
+async function _deleteRows(ids){
+  const CHUNK=25;
+  for(let i=0;i<ids.length;i+=CHUNK){
+    await Promise.all(ids.slice(i,i+CHUNK).map(id=>deleteRow(id)));
   }
 }
 
@@ -1333,13 +1342,25 @@ async function loadData(){
         postponed:r.postponed==='TRUE'||r.postponed===true||r.postponed==='true'
       }));
       const beforeDedup=data.length;
+      const rawRows=data;
       data=deduplicateData(data);
       const dedupChanged=data.length<beforeDedup;
+      // Purga de zombis: lo que el dedup descarta quedaba en DynamoDB para
+      // siempre (solo se ocultaba en pantalla) y renacía en cada carga.
+      // Ahora se borra de verdad. Cinturones: tope de 800 y dataset retenido
+      // sano (>=200). Sin await: los ids ya no están en pantalla y si la
+      // página se cierra a medias, la próxima carga continúa donde quedó.
+      if(dedupChanged){
+        const keptIds=new Set(data.map(d=>String(d.id)));
+        const zombieIds=[...new Set(rawRows.map(r=>String(r.id)))].filter(id=>!keptIds.has(id));
+        if(zombieIds.length&&zombieIds.length<=800&&data.length>=200) _deleteRows(zombieIds).catch(()=>{});
+      }
       localStorage.setItem('studyplan_backup',JSON.stringify(data));
       await mergeAIEngEntries();
       await refreshCcaInfo();
       await replanCerts2026();          // antes del merge de inglés: así el
       await mergeEnglishEntries();      // plan de inglés salta las fechas de examen nuevas
+      await cleanupRestart();
       const migrated=await migrateDates2026();
       if(dedupChanged&&!migrated) await saveData(); // persist dedup if migration didn't save
     } else {
@@ -1611,6 +1632,64 @@ async function replanCerts2026(){
   localStorage.setItem(REPLAN_KEY,'done');
   await saveData();
   showStatus('📅 Plan reiniciado desde hoy: CP → AI → Terraform → Claude F. (2026) + SAA (2027)','var(--terraform)');
+}
+
+// ── LIMPIEZA DE REINICIO (13-jul-2026) ────────────────────────────────────────
+// Complementa el replan: nada PENDIENTE puede quedar antes del 13 de julio
+// (lo completado se conserva como historial con su fecha original).
+// - baby/descanso pendientes anteriores al corte → se eliminan
+// - certs pendientes anteriores al corte (huérfanos de duplicados) → se mueven a hoy
+// - aieng con pendientes viejos → TODOS los pendientes se re-empaquetan 1/día
+//   desde hoy (salta domingos y fechas de examen)
+// - inglés → si el plan quedó generado con el arranque viejo (20-jul) y nada
+//   está done, se regenera completo desde EN_START (13-jul)
+// Idempotente entre dispositivos: usa el corte fijo RESTART_CUTOFF y detección
+// por contenido — tras la primera corrida ya no hay nada que matchee.
+const RESTART_CUTOFF='2026-07-13';
+async function cleanupRestart(){
+  const today=getTodayStr();
+  const pendingOld=d=>!d.done&&(d.date||'')<RESTART_CUTOFF;
+
+  const toDelete=data.filter(d=>pendingOld(d)&&(d.cat==='baby'||d.cat==='descanso'));
+  const strayCerts=data.filter(d=>pendingOld(d)&&certPhase(d));
+  const aiengStale=data.some(d=>pendingOld(d)&&d.cat==='aieng');
+  const engItems=data.filter(d=>(d.week||'').startsWith('English S'));
+  const engMin=engItems.reduce((m,d)=>d.date<m?d.date:m,'9999-99-99');
+  const engStale=engItems.length>0&&engMin>RESTART_CUTOFF&&engItems.every(d=>!d.done);
+
+  if(!toDelete.length&&!strayCerts.length&&!aiengStale&&!engStale)return;
+
+  if(toDelete.length){
+    const ids=new Set(toDelete.map(d=>d.id));
+    data=data.filter(d=>!ids.has(d.id));
+    await _deleteRows([...ids].map(String));
+  }
+
+  strayCerts.forEach(d=>{d.date=today;d.postponed=false;});
+
+  if(aiengStale){
+    const ex=new Set(data.filter(d=>d.cat==='examen').map(d=>d.date));
+    const cur=parseLocalDate(today);
+    data.filter(d=>d.cat==='aieng'&&!d.done)
+      .sort((a,b)=>a.date.localeCompare(b.date))
+      .forEach(it=>{
+        while(cur.getDay()===0||ex.has(fmtLocalDate(cur)))cur.setDate(cur.getDate()+1);
+        it.date=fmtLocalDate(cur);
+        cur.setDate(cur.getDate()+1);
+      });
+  }
+
+  if(engStale){
+    const ids=new Set(engItems.map(d=>d.id));
+    data=data.filter(d=>!ids.has(d.id));
+    await _deleteRows([...ids].map(String));
+    const maxId=data.reduce((m,d)=>Math.max(m,Number(d.id)||0),0);
+    data=data.concat(buildEnglishEntries(maxId+1));
+  }
+
+  data.sort((a,b)=>a.date.localeCompare(b.date));
+  await saveData();
+  showStatus('🧹 Plan pendiente reorganizado: todo arranca desde hoy','var(--terraform)');
 }
 
 function addDailyBabyActivities(){

@@ -124,6 +124,15 @@ getAll (DynamoDB)
 - Al correr, setea también el flag de la migración v4 como done (queda obsoleta)
 - Corre ANTES de `mergeEnglishEntries` para que el plan de inglés salte las fechas de examen nuevas
 
+### Limpieza de reinicio (`cleanupRestart`)
+- Complementa el replan: nada pendiente queda antes de `RESTART_CUTOFF` ('2026-07-13'); lo done conserva su fecha como historial
+- baby/descanso pendientes viejos → eliminados; certs pendientes viejos (huérfanos de dedup) → movidos a hoy; aieng pendiente → re-empaquetado 1/día desde hoy; inglés → regenerado desde EN_START si quedó con el arranque viejo y nada done
+- Idempotente cross-device: corte fijo + detección por contenido
+
+### Purga de zombis (en `loadData`, tras dedup)
+- **Bug histórico**: `deduplicateData` ocultaba duplicados en pantalla pero NUNCA los borraba de DynamoDB → la tabla llegó a 1230 filas con ~596 reales (baby multiplicados ×5)
+- Ahora los ids descartados por dedup se borran de la BD (`_deleteRows`, chunks de 25, sin await). Cinturones: tope 800 ids y dataset retenido >= 200
+
 ### Migración de fechas (`migrateDates2026`) — obsoleta tras el replan v5
 - Detecta si hay entradas de cert/aieng con fecha `< '2026-06-15'`
 - Si detecta, redistribuye: **1 cert/día + 1 aieng/día**, lunes a sábado, saltando fechas de examen
@@ -144,7 +153,7 @@ getAll (DynamoDB)
 - Botón "Seleccionar" en la vista diaria para seleccionar actividades y moverlas a otra fecha
 
 ### Plan de inglés A2→B1 (`ENGLISH_PLAN` + `buildEnglishEntries`)
-- Curso estructurado de 24 semanas (6 módulos de 4: 3 contenido + 1 repaso/evaluación), lun–sáb desde **2026-07-20**, 30–40 min/día
+- Curso estructurado de 24 semanas (6 módulos de 4: 3 contenido + 1 repaso/evaluación), lun–sáb desde **2026-07-13** (mismo día del reinicio del plan), 30–40 min/día
 - Los ítems NO viven en INITIAL: se **generan** con `buildEnglishEntries()` desde `ENGLISH_PLAN` (24 semanas) × `EN_ROLES` (ciclo semanal fijo: Gramática → Vocab+Reading → Listening → Speaking → Writing → Repaso+test)
 - Repaso espaciado automático: cada semana referencia el vocab de las semanas de contenido ≈ n-1 y n-3 (las de repaso se saltan)
 - Salta domingos y fechas de examen (el ítem se omite, no se corre)
