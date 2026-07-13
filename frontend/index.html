@@ -313,7 +313,7 @@ tr.postponed-row{border-left:3px solid var(--postponed);}
 <div class="header">
   <div>
     <h1>Plan de Estudio</h1>
-    <p>5 Certificaciones · Junio – Diciembre 2026</p>
+    <p>4 certs 2026 + SAA 2027 · Inglés B1 · AI Engineer</p>
   </div>
   <div class="stats">
     <div class="stat"><div class="stat-num" style="color:var(--aws)" id="stat-aws">0</div><div class="stat-label">AWS</div></div>
@@ -345,15 +345,10 @@ tr.postponed-row{border-left:3px solid var(--postponed);}
   </div>
 </div>
 
-<!-- PHASES -->
+<!-- PHASES (se rellena dinámicamente desde las fechas de examen en los datos) -->
 <div class="phases">
   <span style="font-size:.58rem;color:var(--muted)">FASES:</span>
-  <span class="phase-tag aws">☁️ AWS Cloud Practitioner → 5 Agosto</span>
-  <span class="phase-tag ai">🤖 AWS AI Practitioner → 5 Sep</span>
-  <span class="phase-tag terraform">🟣 Terraform Associate → 20 Sep</span>
-  <span class="phase-tag saa">🏗️ AWS SAA → 20 Diciembre</span>
-  <span class="phase-tag cca">✨ Claude CCA → 2027</span>
-  <span class="phase-tag aieng">🧠 AI Engineer → Q1 2027</span>
+  <span id="phases-list" style="display:contents"></span>
 </div>
 
 <!-- NAV -->
@@ -1342,8 +1337,9 @@ async function loadData(){
       const dedupChanged=data.length<beforeDedup;
       localStorage.setItem('studyplan_backup',JSON.stringify(data));
       await mergeAIEngEntries();
-      await mergeEnglishEntries();
       await refreshCcaInfo();
+      await replanCerts2026();          // antes del merge de inglés: así el
+      await mergeEnglishEntries();      // plan de inglés salta las fechas de examen nuevas
       const migrated=await migrateDates2026();
       if(dedupChanged&&!migrated) await saveData(); // persist dedup if migration didn't save
     } else {
@@ -1551,6 +1547,72 @@ async function refreshCcaInfo(){
   showStatus('✨ Info CCA actualizada: Pearson VUE + Anthropic Academy ('+touched.length+' ítems)','var(--cca)');
 }
 
+// ── REPLAN 13-JUL-2026 ────────────────────────────────────────────────────────
+// Reinicia el plan desde hoy: 4 certs en 2026 en orden CP → AI Practitioner →
+// Terraform → Claude Architect Foundations, y SAA desplazada a 2027 (arranca
+// tras las fiestas). Reagenda TODOS los ítems cert pendientes 1/día lun–sáb
+// empaquetados por fase, y coloca cada examen 2 días después de terminar su
+// fase (las fechas de examen salen del progreso real: lo done no se toca).
+// Corre una vez: flag + detección por fechas de examen del plan anterior.
+const REPLAN_KEY='studyplan_replan_v5_jul2026';
+
+// A qué certificación pertenece un ítem del track cert (los simulacros cat
+// 'repaso' se asignan por nombre; el resto por su categoría).
+function certPhase(d){
+  if(['aws','ai','terraform','cca','saa'].includes(d.cat))return d.cat;
+  if(d.cat==='repaso'){
+    const n=d.name||'';
+    if(/CCA/i.test(n))return 'cca';
+    if(/SAA/i.test(n))return 'saa';
+    if(/terraform/i.test(n))return 'terraform';
+    if(/\bAI\b/.test(n))return 'ai';
+    return 'aws';
+  }
+  return null;
+}
+
+async function replanCerts2026(){
+  if(localStorage.getItem(REPLAN_KEY)==='done')return;
+  const exams={
+    aws:data.find(d=>d.cat==='examen'&&/Cloud Practitioner/.test(d.name||'')),
+    ai:data.find(d=>d.cat==='examen'&&/AI Practitioner/.test(d.name||'')),
+    terraform:data.find(d=>d.cat==='examen'&&/Terraform/.test(d.name||'')),
+    cca:data.find(d=>d.cat==='examen'&&/CCA/.test(d.name||'')),
+    saa:data.find(d=>d.cat==='examen'&&/Solutions Architect/.test(d.name||'')),
+  };
+  const stale=(exams.saa&&exams.saa.date==='2026-12-20')||(exams.cca&&exams.cca.date==='2027-03-15');
+  if(!stale){localStorage.setItem(REPLAN_KEY,'done');return;}
+
+  // Fechas de examen del plan viejo: si un examen nuevo cayera en una de estas,
+  // la migración v4 podría re-dispararse en un dispositivo sin flag — evitarlas.
+  const V4_DATES=new Set(['2026-07-19','2026-08-03','2026-08-27','2026-09-29','2026-11-24']);
+  const cur=parseLocalDate(getTodayStr());
+  const skipSunday=()=>{while(cur.getDay()===0)cur.setDate(cur.getDate()+1);};
+  const nextStudyDay=()=>{skipSunday();const ds=fmtLocalDate(cur);cur.setDate(cur.getDate()+1);return ds;};
+
+  for(const phase of ['aws','ai','terraform','cca','saa']){
+    if(phase==='saa'){
+      const janStart=parseLocalDate('2027-01-11');
+      if(cur<janStart)cur.setTime(janStart.getTime());
+    }
+    const items=data.filter(d=>!d.done&&d.cat!=='examen'&&certPhase(d)===phase)
+      .sort((a,b)=>a.date.localeCompare(b.date));
+    items.forEach(it=>{it.date=nextStudyDay();it.postponed=false;});
+    // 1 día de repaso libre, luego el examen
+    cur.setDate(cur.getDate()+1);
+    skipSunday();
+    let examDs=fmtLocalDate(cur);
+    while(V4_DATES.has(examDs)){cur.setDate(cur.getDate()+1);skipSunday();examDs=fmtLocalDate(cur);}
+    if(exams[phase])exams[phase].date=examDs;
+    // descanso post-examen antes de la siguiente fase
+    cur.setDate(cur.getDate()+2);
+  }
+  localStorage.setItem(MIGATION_KEY,'done'); // la migración v4 queda obsoleta tras el replan
+  localStorage.setItem(REPLAN_KEY,'done');
+  await saveData();
+  showStatus('📅 Plan reiniciado desde hoy: CP → AI → Terraform → Claude F. (2026) + SAA (2027)','var(--terraform)');
+}
+
 function addDailyBabyActivities(){
   // Get dates that already have a SHORT baby activity (15-20 min)
   // We add one per day regardless, but avoid duplicating the same template name
@@ -1629,6 +1691,28 @@ function updateStats(){
     d.setDate(d.getDate()-1);
   }
   document.getElementById('streak-num').textContent=streak;
+  renderPhases();
+}
+
+// Banner de fases: lee las fechas reales de los ítems examen (siempre al día,
+// incluso después de un replan o de mover un examen a mano).
+function renderPhases(){
+  const el=document.getElementById('phases-list');
+  if(!el)return;
+  const MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const defs=[
+    {re:/Cloud Practitioner/,cls:'aws',label:'☁️ AWS Cloud Practitioner'},
+    {re:/AI Practitioner/,cls:'ai',label:'🤖 AWS AI Practitioner'},
+    {re:/Terraform/,cls:'terraform',label:'🟣 Terraform Associate'},
+    {re:/CCA/,cls:'cca',label:'✨ Claude Architect F.'},
+    {re:/Solutions Architect/,cls:'saa',label:'🏗️ AWS SAA'},
+  ];
+  el.innerHTML=defs.map(f=>{
+    const ex=data.find(d=>d.cat==='examen'&&f.re.test(d.name||''));
+    if(!ex||!ex.date)return '';
+    const dt=parseLocalDate(ex.date);
+    return `<span class="phase-tag ${f.cls}">${f.label} → ${dt.getDate()} ${MESES[dt.getMonth()]}${dt.getFullYear()>2026?' '+dt.getFullYear():''}</span>`;
+  }).join('')+'<span class="phase-tag aieng">🧠 AI Engineer → Q1 2027</span>';
 }
 
 // ── VIEWS ──

@@ -116,7 +116,15 @@ getAll (DynamoDB)
 - `saveRow(item)` — saveRow individual. Usado para marcar done, notas, etc.
 - `deleteRow(id)` — deleteRow individual.
 
-### Migración de fechas (`migrateDates2026`)
+### Replan v5 (`replanCerts2026`)
+- One-shot (flag `studyplan_replan_v5_jul2026` + detección por fechas de examen viejas: SAA 2026-12-20 o CCA 2027-03-15)
+- Reagenda TODOS los ítems cert pendientes 1/día lun–sáb desde hoy, **empaquetados por fase** en orden aws → ai → terraform → cca → saa; SAA no arranca antes de 2027-01-11
+- Cada examen se coloca 2 días después del último ítem de su fase (evitando domingos y las fechas de examen v4)
+- `certPhase(d)` asigna los simulacros `repaso` a su cert por nombre (CCA/SAA/Terraform/AI, resto → aws)
+- Al correr, setea también el flag de la migración v4 como done (queda obsoleta)
+- Corre ANTES de `mergeEnglishEntries` para que el plan de inglés salte las fechas de examen nuevas
+
+### Migración de fechas (`migrateDates2026`) — obsoleta tras el replan v5
 - Detecta si hay entradas de cert/aieng con fecha `< '2026-06-15'`
 - Si detecta, redistribuye: **1 cert/día + 1 aieng/día**, lunes a sábado, saltando fechas de examen
 - Categorías de cert: `aws, ai, terraform, cca, saa, repaso, english`
@@ -155,14 +163,18 @@ getAll (DynamoDB)
 
 ## Plan de certificaciones
 
-| Cert | Fecha target |
+**Replan del 13 de julio 2026**: 4 certs en 2026 (CP → AI Pract → Terraform → Claude Architect F.) y SAA desplazada a 2027. Las fechas de examen las calcula `replanCerts2026()` en runtime según el progreso real (cada examen cae 2 días después de terminar su fase de estudio). Fechas estimadas en el peor caso (0 progreso previo):
+
+| Cert | Fecha estimada |
 |------|-------------|
-| AWS Cloud Practitioner | 5 Agosto 2026 |
-| AWS AI Practitioner | 5 Septiembre 2026 |
-| Terraform Associate | 20 Septiembre 2026 |
-| AWS SAA | 20 Diciembre 2026 |
-| Claude Certified Architect – Foundations (CCAR-F) | 15 Marzo 2027 |
+| AWS Cloud Practitioner | ~7 Agosto 2026 |
+| AWS AI Practitioner | ~24 Agosto 2026 |
+| Terraform Associate | ~28 Septiembre 2026 |
+| Claude Certified Architect – Foundations (CCAR-F) | ~26 Octubre 2026 |
+| AWS SAA | ~12 Febrero 2027 (estudio arranca 11 Ene) |
 | AI Engineer | Q1 2027 |
+
+Si hay ítems `done`, las fechas reales serán anteriores. El banner de fases del header se rellena dinámicamente (`renderPhases()`) desde los ítems `examen` en los datos — nunca editar fechas de fases en el HTML.
 
 **Certificación Claude (actualizada julio 2026)**: el programa de Anthropic ahora tiene 4 exámenes (Associate-F $99, Developer-F $125, Architect-F $125, Architect-P $175), todos vía Pearson VUE (OnVUE) desde julio 2026, en inglés, 720/1000, validez 12 meses. El plan apunta a **CCAR-F**: 60 preguntas / 120 min, 5 dominios (Agentic 27%, Claude Code 20%, Prompts 20%, Tools/MCP 18%, Context 15%), 4 de 6 escenarios conocidos. Prep oficial gratis en Anthropic Academy (anthropic.skilljar.com) con practice exam. `refreshCcaInfo()` actualiza una vez los ítems CCA en la BD copiando topics/links desde INITIAL (detecta por 'Pearson' en el ítem BUFFER); el nombre `🏆 EXAMEN CCA Foundations` NO se renombra (lo referencia `NEW_EXAM` en la migración).
 
@@ -262,3 +274,4 @@ cd infrastructure && terraform output api_url
 - Calendario: límites de navegación dinámicos (`calBounds()` deriva min/max de los datos)
 - Eliminados `index.html` y `CNAME` de la raíz (copias obsoletas; lo real vive en `frontend/`)
 - Plan de inglés A2→B1 integrado: 142 actividades generadas (24 semanas desde 2026-07-20); las "Clase de inglés" genéricas fueron reemplazadas
+- Replan v5 (13 Jul 2026): 4 certs en 2026 + SAA en Feb 2027; fechas de examen dinámicas según progreso; banner de fases dinámico (`renderPhases`)
