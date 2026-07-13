@@ -1210,7 +1210,7 @@ function buildEnglishEntries(startId){
 
 let data=[];
 let activeFilter='all';
-let currentMonth=new Date(2026,5,15);
+let currentMonth=new Date(); // el calendario abre en el mes actual
 let editingId=null;
 let linkRows=[];
 
@@ -1987,12 +1987,14 @@ function rescheduleOverdue(){
 // Límites de navegación derivados de los datos (mes mínimo y máximo del plan),
 // para que el calendario no quede bloqueado cuando el plan cruce de año.
 function calBounds(){
-  let min='2026-06',max='2027-03';
+  let min='',max='';
   data.forEach(d=>{
     const m=(d.date||'').slice(0,7);
-    if(m){if(m<min)min=m;if(m>max)max=m;}
+    if(!m)return;
+    if(!min||m<min)min=m;
+    if(!max||m>max)max=m;
   });
-  return {min,max};
+  return {min:min||'2026-07',max:max||'2027-03'};
 }
 
 function renderCalendar(){
