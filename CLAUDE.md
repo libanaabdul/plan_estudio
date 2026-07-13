@@ -239,6 +239,10 @@ Si hay ítems `done`, las fechas reales serán anteriores. El banner de fases de
 - **Fix 1**: timeout subido a 29s en Terraform
 - **Fix 2**: frontend divide en chunks de 50 ítems por request
 
+### Vista Semanas agrupada por etiqueta de texto (desorganizada tras el replan)
+- **Causa**: `renderWeekly` agrupaba por el string `item.week` — tras el replan convivían etiquetas viejas ("Semana 1", "Semana 12 CCA") con nuevas ("CP S1", "English S03") y el orden salía del orden de los datos
+- **Fix**: agrupa por semana **calendario** (lunes–domingo) derivada de `item.date` con `weekStartOf()`, numerada desde el reinicio (Semana 1 = 2026-07-13), orden cronológico, solo la semana actual abierta. La etiqueta `item.week` se muestra como tag de contexto solo si tiene formato nuevo (se ocultan las `/^Semana /` viejas)
+
 ### week-item grid roto en vistas nuevas
 - **Causa**: `.week-item` usa `grid-template-columns: 26px 82px auto 1fr` (4 cols). Si una vista nueva usa flex o distinto número de hijos, queda visualmente roto.
 - **Fix**: siempre usar exactamente 4 hijos: `checkbox-cell | week-item-date | div(name) | week-item-topics`. Ver `renderAiEng` como referencia.

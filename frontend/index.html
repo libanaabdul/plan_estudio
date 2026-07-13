@@ -2022,34 +2022,59 @@ function renderTable(){
 }
 
 // ── WEEKLY ──
+// Agrupa por semana CALENDARIO (lunes–domingo) derivada de la FECHA del ítem,
+// numerada desde el reinicio (Semana 1 = semana del 2026-07-13) y en orden
+// cronológico. Las etiquetas de texto `week` viejas ('Semana 12 CCA'...) ya no
+// ordenan la vista: solo se muestran como contexto si tienen formato nuevo.
+// Solo la semana actual se abre por defecto; el resto queda colapsado.
+function weekStartOf(ds){
+  const d=parseLocalDate(ds);
+  d.setDate(d.getDate()-((d.getDay()+6)%7)); // retrocede al lunes
+  return fmtLocalDate(d);
+}
+const _CAT_RANK={examen:0,aws:1,ai:1,terraform:1,cca:1,saa:1,repaso:1,aieng:2,english:3,baby:4,descanso:5};
 function renderWeekly(){
   const today=getTodayStr();
-  const fd=filterData();
+  const curWeek=weekStartOf(today);
+  const base=parseLocalDate(weekStartOf(RESTART_CUTOFF));
+  const MESES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   const weeks={};
-  fd.forEach(item=>{if(!weeks[item.week])weeks[item.week]=[];weeks[item.week].push(item);});
-  document.getElementById('weekly-body').innerHTML=Object.entries(weeks).map(([week,items])=>{
+  filterData().filter(d=>d.date).forEach(item=>{
+    const ws=weekStartOf(item.date);
+    if(!weeks[ws])weeks[ws]=[];
+    weeks[ws].push(item);
+  });
+  document.getElementById('weekly-body').innerHTML=Object.keys(weeks).sort().map(ws=>{
+    const items=weeks[ws].sort((a,b)=>a.date.localeCompare(b.date)||((_CAT_RANK[a.cat]??9)-(_CAT_RANK[b.cat]??9)));
     const total=items.filter(i=>i.cat!=='descanso').length;
     const done=items.filter(i=>i.done&&i.cat!=='descanso').length;
     const pct=total?Math.round(done/total*100):0;
-    const wid='w-'+week.replace(/[^a-zA-Z0-9]/g,'-');
+    const wid='w-'+ws;
     const hasOverdue=items.some(i=>i.date<today&&!i.done&&i.cat!=='descanso');
+    const start=parseLocalDate(ws);
+    const end=new Date(start);end.setDate(start.getDate()+6);
+    const num=Math.round((start-base)/(7*864e5))+1;
+    const isCur=ws===curWeek;
+    const open=isCur;
+    const title=`Semana ${num} · ${start.getDate()} ${MESES[start.getMonth()]} – ${end.getDate()} ${MESES[end.getMonth()]}${end.getFullYear()>2026?' '+end.getFullYear():''}`;
     return `<div class="week-section">
       <div class="week-header" onclick="toggleWeek('${wid}')">
-        <span class="week-toggle open" id="t-${wid}">▼</span>
-        <span class="week-header-title">${week}${hasOverdue?' ⚠️':''}</span>
+        <span class="week-toggle${open?' open':''}" id="t-${wid}">▼</span>
+        <span class="week-header-title"${isCur?' style="color:var(--terraform)"':''}>${title}${isCur?' · ACTUAL':''}${hasOverdue?' ⚠️':''}</span>
         <div class="week-progress">
           <div>${done}/${total} completadas</div>
           <div class="week-progress-bar"><div class="week-progress-fill" style="width:${pct}%"></div></div>
         </div>
       </div>
-      <div class="week-body open" id="${wid}">
+      <div class="week-body${open?' open':''}" id="${wid}">
         ${items.map(item=>{
           const isOverdue=item.date<today&&!item.done&&item.cat!=='descanso';
+          const trackTag=item.week&&!/^Semana /.test(item.week)?`<span style="font-size:.58rem;color:var(--muted);margin-left:.35rem">${item.week}</span>`:'';
           return `<div data-sel-id="${item.id}" class="week-item${item.done?' done':''}${isOverdue?' overdue':''}${item.postponed?' postponed-item':''}${selectMode&&selectedIds.has(item.id)?' sel-item':''}" ${selectMode?`onclick="toggleSelect(${item.id})"`:''}>
             <div class="checkbox-cell ${item.done?'checked':''}" onclick="${selectMode?`event.stopPropagation();toggleSelect(${item.id})`:`toggleDone(${item.id})`}"></div>
-            <div class="week-item-date">${(item.date||''). slice(0,10).slice(5)}</div>
+            <div class="week-item-date">${(item.date||'').slice(5,10)}</div>
             <div>
-              <span class="cat-badge ${item.cat}" style="font-size:.6rem">${catLabel(item.cat)}</span>
+              <span class="cat-badge ${item.cat}" style="font-size:.6rem">${catLabel(item.cat)}</span>${trackTag}
               <div class="week-item-name">${item.postponed?'⏸ ':''}${item.name}</div>
               ${item.dur?`<div style="font-size:.62rem;color:var(--muted);margin-top:.1rem">⏱ ${item.dur}${item.realDur?' · real: '+item.realDur:''}</div>`:''}
               <div style="margin-top:.2rem;display:flex;gap:.35rem;flex-wrap:wrap">
