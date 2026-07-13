@@ -124,6 +124,12 @@ getAll (DynamoDB)
 - Al correr, setea también el flag de la migración v4 como done (queda obsoleta)
 - Corre ANTES de `mergeEnglishEntries` para que el plan de inglés salte las fechas de examen nuevas
 
+### Currículo v2 CP/AI/Terraform (`upgradeCertCurriculum`)
+- Temario rediseñado: **64 sesiones diarias segmentadas** (CP 23, AI Pract 17, TF 24) — un solo tema por sesión de 30-45 min (nunca S3+VPC+EC2 juntos), semanas temáticas (`CP S1..S4`, `AI Pract S1..S3`, `TF S1..S4`), repaso semanal con mini-quiz, simulacros al cierre de cada cert
+- Cada topics incluye: temario del día | por qué ese tema ahora | ▶ práctica concreta | ✅ criterio de logro
+- Links: cursos existentes del usuario (Maarek CP/AI, Zeal Vora + KodeKloud TF, Neal Davis y TD practice) + docs oficiales (developer.hashicorp.com, docs.aws.amazon.com/bedrock, tutorialsdojo cheat sheets)
+- One-shot cross-device (detecta por prefijo de week `'CP S'`): borra los ítems pendientes viejos de esas 3 certs con sus simulacros, inserta el temario nuevo desde INITIAL y llama `packCertPhases()` (extraído de replanCerts2026) para recalcular fechas y exámenes
+
 ### Limpieza de reinicio (`cleanupRestart`)
 - Complementa el replan: NADA queda antes de `RESTART_CUTOFF` ('2026-07-13') — ni pendiente ni done (Libi no quiere ver ningún día anterior al reinicio; el historial viejo se elimina)
 - done viejos y baby/descanso pendientes viejos → eliminados; certs pendientes viejos (huérfanos de dedup) → movidos a hoy; aieng pendiente → re-empaquetado 1/día desde hoy; inglés → regenerado desde EN_START si quedó con el arranque viejo y nada done
@@ -174,14 +180,14 @@ getAll (DynamoDB)
 
 **Replan del 13 de julio 2026**: 4 certs en 2026 (CP → AI Pract → Terraform → Claude Architect F.) y SAA desplazada a 2027. Las fechas de examen las calcula `replanCerts2026()` en runtime según el progreso real (cada examen cae 2 días después de terminar su fase de estudio). Fechas estimadas en el peor caso (0 progreso previo):
 
-| Cert | Fecha estimada |
-|------|-------------|
-| AWS Cloud Practitioner | ~7 Agosto 2026 |
-| AWS AI Practitioner | ~24 Agosto 2026 |
-| Terraform Associate | ~28 Septiembre 2026 |
-| Claude Certified Architect – Foundations (CCAR-F) | ~26 Octubre 2026 |
-| AWS SAA | ~12 Febrero 2027 (estudio arranca 11 Ene) |
-| AI Engineer | Q1 2027 |
+| Cert | Sesiones | Fecha estimada |
+|------|----------|-------------|
+| AWS Cloud Practitioner | 23 | ~10 Agosto 2026 |
+| AWS AI Practitioner | 17 | ~2 Septiembre 2026 |
+| Terraform Associate | 24 | ~3 Octubre 2026 |
+| Claude Certified Architect – Foundations (CCAR-F) | 22 | ~31 Octubre 2026 |
+| AWS SAA | 27 | ~12 Febrero 2027 (estudio arranca 11 Ene) |
+| AI Engineer | — | Q1 2027 |
 
 Si hay ítems `done`, las fechas reales serán anteriores. El banner de fases del header se rellena dinámicamente (`renderPhases()`) desde los ítems `examen` en los datos — nunca editar fechas de fases en el HTML.
 
