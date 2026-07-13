@@ -125,8 +125,8 @@ getAll (DynamoDB)
 - Corre ANTES de `mergeEnglishEntries` para que el plan de inglés salte las fechas de examen nuevas
 
 ### Limpieza de reinicio (`cleanupRestart`)
-- Complementa el replan: nada pendiente queda antes de `RESTART_CUTOFF` ('2026-07-13'); lo done conserva su fecha como historial
-- baby/descanso pendientes viejos → eliminados; certs pendientes viejos (huérfanos de dedup) → movidos a hoy; aieng pendiente → re-empaquetado 1/día desde hoy; inglés → regenerado desde EN_START si quedó con el arranque viejo y nada done
+- Complementa el replan: NADA queda antes de `RESTART_CUTOFF` ('2026-07-13') — ni pendiente ni done (Libi no quiere ver ningún día anterior al reinicio; el historial viejo se elimina)
+- done viejos y baby/descanso pendientes viejos → eliminados; certs pendientes viejos (huérfanos de dedup) → movidos a hoy; aieng pendiente → re-empaquetado 1/día desde hoy; inglés → regenerado desde EN_START si quedó con el arranque viejo y nada done
 - Idempotente cross-device: corte fijo + detección por contenido
 
 ### Purga de zombis (en `loadData`, tras dedup)

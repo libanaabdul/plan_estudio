@@ -1635,8 +1635,9 @@ async function replanCerts2026(){
 }
 
 // ── LIMPIEZA DE REINICIO (13-jul-2026) ────────────────────────────────────────
-// Complementa el replan: nada PENDIENTE puede quedar antes del 13 de julio
-// (lo completado se conserva como historial con su fecha original).
+// Complementa el replan: NADA puede quedar antes del 13 de julio, ni pendiente
+// ni completado — el usuario no quiere ver ningún día anterior al reinicio.
+// - TODO lo done anterior al corte → se elimina
 // - baby/descanso pendientes anteriores al corte → se eliminan
 // - certs pendientes anteriores al corte (huérfanos de duplicados) → se mueven a hoy
 // - aieng con pendientes viejos → TODOS los pendientes se re-empaquetan 1/día
@@ -1648,9 +1649,10 @@ async function replanCerts2026(){
 const RESTART_CUTOFF='2026-07-13';
 async function cleanupRestart(){
   const today=getTodayStr();
-  const pendingOld=d=>!d.done&&(d.date||'')<RESTART_CUTOFF;
+  const old=d=>(d.date||'')<RESTART_CUTOFF;
+  const pendingOld=d=>!d.done&&old(d);
 
-  const toDelete=data.filter(d=>pendingOld(d)&&(d.cat==='baby'||d.cat==='descanso'));
+  const toDelete=data.filter(d=>(d.done&&old(d))||(pendingOld(d)&&(d.cat==='baby'||d.cat==='descanso')));
   const strayCerts=data.filter(d=>pendingOld(d)&&certPhase(d));
   const aiengStale=data.some(d=>pendingOld(d)&&d.cat==='aieng');
   const engItems=data.filter(d=>(d.week||'').startsWith('English S'));
