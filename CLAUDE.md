@@ -161,8 +161,10 @@ getAll (DynamoDB)
 | AWS AI Practitioner | 5 Septiembre 2026 |
 | Terraform Associate | 20 Septiembre 2026 |
 | AWS SAA | 20 Diciembre 2026 |
-| Claude CCA Foundations | 15 Marzo 2027 |
+| Claude Certified Architect – Foundations (CCAR-F) | 15 Marzo 2027 |
 | AI Engineer | Q1 2027 |
+
+**Certificación Claude (actualizada julio 2026)**: el programa de Anthropic ahora tiene 4 exámenes (Associate-F $99, Developer-F $125, Architect-F $125, Architect-P $175), todos vía Pearson VUE (OnVUE) desde julio 2026, en inglés, 720/1000, validez 12 meses. El plan apunta a **CCAR-F**: 60 preguntas / 120 min, 5 dominios (Agentic 27%, Claude Code 20%, Prompts 20%, Tools/MCP 18%, Context 15%), 4 de 6 escenarios conocidos. Prep oficial gratis en Anthropic Academy (anthropic.skilljar.com) con practice exam. `refreshCcaInfo()` actualiza una vez los ítems CCA en la BD copiando topics/links desde INITIAL (detecta por 'Pearson' en el ítem BUFFER); el nombre `🏆 EXAMEN CCA Foundations` NO se renombra (lo referencia `NEW_EXAM` en la migración).
 
 **Regla de días cert**: 1 cert/día lunes-sábado desde 2026-06-15.
 **AI Eng es independiente**: 1 aieng/día desde 2026-07-01, en su propia vista. No se mezcla con la vista Hoy.
