@@ -1365,6 +1365,7 @@ async function loadData(){
       await upgradeCertCurriculum();    // temario v2 fija las fechas de examen finales
       await mergeEnglishEntries();      // plan de inglés salta las fechas de examen nuevas
       await cleanupRestart();
+      await reconcileCurriculum();      // corre siempre: mata temario viejo resucitado
       const migrated=await migrateDates2026();
       if(dedupChanged&&!migrated) await saveData(); // persist dedup if migration didn't save
     } else {
@@ -1671,6 +1672,32 @@ async function upgradeCertCurriculum(){
   data.sort((a,b)=>a.date.localeCompare(b.date));
   await saveData();
   showStatus('📚 Temario CP/AI/Terraform rediseñado: 1 tema por sesión ('+fresh.length+' días)','var(--aws)');
+}
+
+// ── RECONCILIADOR PERMANENTE ──────────────────────────────────────────────────
+// Corre en CADA carga (sin flags): si una pestaña o dispositivo con datos
+// viejos en memoria "resucita" ítems del temario anterior (race last-write-wins
+// entre sesiones), aquí se eliminan y se re-empaquetan las fases para restaurar
+// el equilibrio 1 cert/día. Convergente: en cargas limpias no hace nada.
+async function reconcileCurriculum(){
+  const NEW_WEEK=/^(CP S|AI Pract S|TF S)/;
+  const stale=data.filter(d=>{
+    if(d.done)return false;
+    const ph=certPhase(d);
+    if(ph==='aws'||ph==='ai'||ph==='terraform')return !NEW_WEEK.test(d.week||'');
+    if(d.cat==='english')return !(d.week||'').startsWith('English S');
+    return false;
+  });
+  if(!stale.length)return;
+  const ids=new Set(stale.map(d=>d.id));
+  data=data.filter(d=>!ids.has(d.id));
+  await _deleteRows([...ids].map(String));
+  // Las fechas quedaron contaminadas (dos temarios superpuestos el mismo día):
+  // re-empaquetar todas las fases y recalcular fechas de exámenes.
+  packCertPhases();
+  data.sort((a,b)=>a.date.localeCompare(b.date));
+  await saveData();
+  showStatus('⚖️ Plan re-equilibrado: '+stale.length+' ítems del temario viejo eliminados','var(--aws)');
 }
 
 // ── LIMPIEZA DE REINICIO (13-jul-2026) ────────────────────────────────────────

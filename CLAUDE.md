@@ -130,6 +130,11 @@ getAll (DynamoDB)
 - Links: cursos existentes del usuario (Maarek CP/AI, Zeal Vora + KodeKloud TF, Neal Davis y TD practice) + docs oficiales (developer.hashicorp.com, docs.aws.amazon.com/bedrock, tutorialsdojo cheat sheets)
 - One-shot cross-device (detecta por prefijo de week `'CP S'`): borra los ítems pendientes viejos de esas 3 certs con sus simulacros, inserta el temario nuevo desde INITIAL y llama `packCertPhases()` (extraído de replanCerts2026) para recalcular fechas y exámenes
 
+### Reconciliador permanente (`reconcileCurriculum`)
+- Corre en **cada carga**, sin flags: elimina cualquier ítem pendiente del temario viejo que "resucite" por el race last-write-wins entre pestañas/dispositivos (cert de aws/ai/terraform cuya week no empiece con `CP S`/`AI Pract S`/`TF S`, o english sin week `English S`)
+- Si encontró algo, re-empaqueta las fases con `packCertPhases()` (restaura 1 cert/día y recalcula exámenes) — convergente: en cargas limpias no hace nada
+- **Regla**: los ítems nuevos de cert DEBEN llevar week con esos prefijos o el reconciliador los borrará
+
 ### Limpieza de reinicio (`cleanupRestart`)
 - Complementa el replan: NADA queda antes de `RESTART_CUTOFF` ('2026-07-13') — ni pendiente ni done (Libi no quiere ver ningún día anterior al reinicio; el historial viejo se elimina)
 - done viejos y baby/descanso pendientes viejos → eliminados; certs pendientes viejos (huérfanos de dedup) → movidos a hoy; aieng pendiente → re-empaquetado 1/día desde hoy; inglés → regenerado desde EN_START si quedó con el arranque viejo y nada done
