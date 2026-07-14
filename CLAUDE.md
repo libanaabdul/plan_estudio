@@ -260,7 +260,6 @@ Si hay ítems `done`, las fechas reales serán anteriores. El banner de fases de
 
 | Secret | Dónde se usa |
 |--------|-------------|
-| `API_URL` | **Ya no se usa** — la URL está hardcodeada en `frontend/index.html` (se puede borrar el secret) |
 | `COGNITO_CLIENT_ID` | ID del App Client de Cognito |
 | `COGNITO_REGION` | `us-east-1` |
 | `AWS_ACCESS_KEY_ID` | CI backend para Terraform |
