@@ -6,7 +6,7 @@ Este archivo es la fuente de verdad del proyecto para sesiones nuevas.
 
 ## Qué es este proyecto
 
-Tracker personal de plan de estudio de certificaciones AWS + AI Engineer, con actividades de bebé intercaladas.
+Tracker personal de plan de estudio de certificaciones AWS + AI Engineer + inglés.
 - **URL pública**: https://tracker.cloudreviews.me
 - **Repo**: https://github.com/libanaabdul/plan_estudio
 - **Branch de deploy**: `gh-pages` (GitHub Actions publica ahí; nunca tocar `main` directamente para pages)
@@ -33,7 +33,8 @@ Tracker personal de plan de estudio de certificaciones AWS + AI Engineer, con ac
 ```
 plan_estudio/
 ├── frontend/
-│   └── index.html          ← toda la app (UI + lógica + datos INITIAL)
+│   ├── index.html          ← toda la app (UI + lógica + datos INITIAL)
+│   └── study-guide.js      ← GENERADO: guía detallada por sesión (window.STUDY_GUIDE)
 ├── backend/
 │   └── lambda/
 │       ├── handler.py      ← Lambda handler
@@ -43,6 +44,10 @@ plan_estudio/
 │   ├── variables.tf        ← project_name="plan-estudio", table_name="study-plan-items"
 │   ├── outputs.tf
 │   └── terraform.tfvars.example
+├── tools/study-plan/        ← fuente del temario y de las guías (Python, no se despliega)
+│   ├── curriculum.py       ← temario → líneas de INITIAL (--apply las escribe en index.html)
+│   ├── guide_{cp,tf,aif,cca,saa}.py ← guías de estudio por sesión
+│   └── build_guide.py      ← guide_*.py → frontend/study-guide.js (valida cobertura 1:1)
 ├── .github/workflows/
 │   ├── deploy-frontend.yml ← push a main → inject secrets → gh-pages
 │   └── deploy-backend.yml  ← push a main → terraform apply
@@ -98,62 +103,62 @@ plan_estudio/
 ## Frontend — funciones clave
 
 ### Datos
-- `INITIAL` — array hardcodeado (~390 ítems) que es la fuente de verdad del plan
+- `INITIAL` — array hardcodeado: 156 ítems cert del plan vigente (`plan:PLAN_VERSION` = `'v4'`, `seq` = orden dentro del plan, `links:[{label,url}]`) + 138 aieng. Las fechas de INITIAL son placeholders: las calcula `replanAll()`
 - `data` — variable global en memoria, sincronizada con DynamoDB
 - `localStorage('studyplan_backup')` — cache local, solo fallback offline
 
 ### Carga de datos (`loadData`)
 ```
 getAll (DynamoDB)
-  → deduplicateData()     — dedup por content-key (no por id)
-  → mergeAIEngEntries()   — agrega AI Eng desde INITIAL si faltan
-  → migrateDates2026()    — redistribuye fechas si hay < '2026-06-15'
-  → saveData() si cambió algo
+  → deduplicateData()      — dedup por content-key (no por id) + purga de zombis
+  → purga de filas 'baby'  — siempre
+  → mergeAIEngEntries()    — agrega AI Eng desde INITIAL si faltan
+  → upgradeToPlan()        — one-shot por contenido (no hay ningún ítem con plan === PLAN_VERSION)
+  → mergeEnglishEntries()  — genera el inglés si no hay week 'English S'
+  → reconcileCurriculum()  — siempre: mata planes viejos resucitados y todo lo anterior a PLAN_START
+  → saveData() si el dedup cambió algo y el upgrade no guardó
 ```
+Las migraciones de julio (`migrateDates2026`, `replanCerts2026`, `upgradeCertCurriculum`, `refreshCcaInfo`, `cleanupRestart`) se **eliminaron** el 24-oct-2026: Libi nunca usó esos planes y `upgradeToPlan` reemplaza todo lo pendiente. Ojo: los flags viejos de localStorage `studyplan_mig_v4_july2026` / `studyplan_replan_v5_jul2026` no tienen relación con `PLAN_VERSION`.
 
 ### Guardado
 - `saveData()` — saveAll en chunks de 50 ítems. Solo para resets/migraciones bulk.
 - `saveRow(item)` — saveRow individual. Usado para marcar done, notas, etc.
 - `deleteRow(id)` — deleteRow individual.
 
-### Replan v5 (`replanCerts2026`)
-- One-shot (flag `studyplan_replan_v5_jul2026` + detección por fechas de examen viejas: SAA 2026-12-20 o CCA 2027-03-15)
-- Reagenda TODOS los ítems cert pendientes 1/día lun–sáb desde hoy, **empaquetados por fase** en orden aws → ai → terraform → cca → saa; SAA no arranca antes de 2027-01-11
-- Cada examen se coloca 2 días después del último ítem de su fase (evitando domingos y las fechas de examen v4)
-- `certPhase(d)` asigna los simulacros `repaso` a su cert por nombre (CCA/SAA/Terraform/AI, resto → aws)
-- Al correr, setea también el flag de la migración v4 como done (queda obsoleta)
-- Corre ANTES de `mergeEnglishEntries` para que el plan de inglés salte las fechas de examen nuevas
+### Planificador (`replanAll` → `packCertPhases` + inglés + AI Eng)
+- **Nada antes de `PLAN_START` ('2026-11-01', domingo → primera sesión lun 2-nov)**: ni ítems (el reconciliador borra cualquier cosa con fecha anterior, done o hecha a mano), ni meses en el calendario (`currentMonth` y `calBounds()` tienen piso en el mes de inicio), ni semanas (Semana 1 = la del primer día de estudio). Antes del inicio, Hoy muestra qué preparar
+- **Orden de facilidad, la más fácil junto a Terraform** (`PHASE_GROUPS`): `[aws, terraform]` en paralelo → `ai` → `cca` → `saa`. Dentro de un grupo cada pista lleva 1 sesión/día; el grupo siguiente arranca el lunes posterior al último examen del grupo
+- Cada pista = semanas completas lun–sáb: L–V sesión de 40–60 min, **sábado sesión larga** (lab / repaso / simulacro). El examen cae el día de estudio siguiente a la última sesión de su pista, nunca en la misma fecha que otro examen (`used`)
+- El CP está diseñado en 5 semanas para convivir con TF (3): el sábado del examen TF el ítem de CP es un repaso de 30 min. Si se cambia el temario de cualquiera de los dos, revisar que esa coincidencia se mantenga
+- Domingos y `HOLIDAYS` = descanso. `HOLIDAYS` son jue–sáb de Navidad y Año Nuevo: 6 días = 1 semana exacta, para que los sábados largos sigan en sábado. Al agregar feriados, hacerlo en bloques que no rompan la semana
+- Inglés: 1 sesión/día lun–sáb en paralelo, salta días de examen. AI Eng: **en pausa** hasta el lunes posterior al último examen
+- Orden dentro de una pista: `byDateSeq` (fecha, luego `seq`, luego id). Si hoy ya hay una sesión done de esa pista, arranca mañana (`trackStart`)
+- Lo creado a mano en el modal lleva `plan:'user'`: el planificador NO lo mueve y el reconciliador NO lo borra (salvo que sea anterior a PLAN_START)
+- Un examen `done` = cert aprobada: su pista deja de consumir calendario
+- Botón "📅 Recalcular plan" (Hoy y banner de atrasadas) → `rescheduleOverdue()` → `replanAll()`: re-empaqueta todo lo pendiente desde hoy conservando el orden, nunca amontona atrasadas en un día. Si Libi se atrasa, los exámenes pueden caer entre semana
+- `certPhase(d)` asigna los simulacros `repaso` a su cert por nombre (CCA/SAA/Terraform/AI, resto → aws): los nombres de simulacro DEBEN contener CP / "AI Practitioner" / Terraform / CCA / SAA
+- Exámenes se encuentran por `EXAM_RE` sobre el nombre — no renombrar `🏆 EXAMEN CCA Foundations` ni quitar "Cloud Practitioner" / "AI Practitioner" / "Terraform" / "Solutions Architect"
 
-### Currículo v2 CP/AI/Terraform (`upgradeCertCurriculum`)
-- Temario rediseñado: **64 sesiones diarias segmentadas** (CP 23, AI Pract 17, TF 24) — un solo tema por sesión de 30-45 min (nunca S3+VPC+EC2 juntos), semanas temáticas (`CP S1..S4`, `AI Pract S1..S3`, `TF S1..S4`), repaso semanal con mini-quiz, simulacros al cierre de cada cert
-- Cada topics incluye: temario del día | por qué ese tema ahora | ▶ práctica concreta | ✅ criterio de logro
-- Links: cursos existentes del usuario (Maarek CP/AI, Zeal Vora + KodeKloud TF, Neal Davis y TD practice) + docs oficiales (developer.hashicorp.com, docs.aws.amazon.com/bedrock, tutorialsdojo cheat sheets)
-- One-shot cross-device (detecta por prefijo de week `'CP S'`): borra los ítems pendientes viejos de esas 3 certs con sus simulacros, inserta el temario nuevo desde INITIAL y llama `packCertPhases()` (extraído de replanCerts2026) para recalcular fechas y exámenes
+### Upgrade de plan (`upgradeToPlan`)
+- One-shot cross-device: corre si ningún ítem tiene `plan === PLAN_VERSION`. Para publicar un temario nuevo: subir `PLAN_VERSION` y regenerar las líneas de INITIAL con ese valor
+- Borra todo lo pendiente de cert/repaso/examen/descanso (+ inglés si no hay inglés done), inserta el temario vigente desde INITIAL (salvo certs con examen done) y regenera el inglés; luego `replanAll()` + `saveData()`
+- Autocurativo: si una pestaña con código viejo reescribe filas sin el campo `plan`, la próxima carga no ve la versión y re-ejecuta el upgrade
 
 ### Reconciliador permanente (`reconcileCurriculum`)
-- Corre en **cada carga**, sin flags: elimina cualquier ítem pendiente del temario viejo que "resucite" por el race last-write-wins entre pestañas/dispositivos (cert de aws/ai/terraform cuya week no empiece con `CP S`/`AI Pract S`/`TF S`, o english sin week `English S`)
-- Si encontró algo, re-empaqueta las fases con `packCertPhases()` (restaura 1 cert/día y recalcula exámenes) — convergente: en cargas limpias no hace nada
-- **Regla**: los ítems nuevos de cert DEBEN llevar week con esos prefijos o el reconciliador los borrará
-
-### Limpieza de reinicio (`cleanupRestart`)
-- Complementa el replan: NADA queda antes de `RESTART_CUTOFF` ('2026-07-13') — ni pendiente ni done (Libi no quiere ver ningún día anterior al reinicio; el historial viejo se elimina)
-- done viejos y baby/descanso pendientes viejos → eliminados; certs pendientes viejos (huérfanos de dedup) → movidos a hoy; aieng pendiente → re-empaquetado 1/día desde hoy; inglés → regenerado desde EN_START si quedó con el arranque viejo y nada done
-- Idempotente cross-device: corte fijo + detección por contenido
+- Corre en **cada carga**, sin flags: borra todo ítem con fecha < `PLAN_START`; todo ítem pendiente cert/repaso/examen/descanso con `plan` distinto de `PLAN_VERSION` y `'user'`; y el inglés sin week `English S`
+- Si encontró algo, `replanAll()` + `saveData()` — convergente: en cargas limpias no hace nada
+- **Regla**: todo ítem cert nuevo en INITIAL DEBE llevar `plan:PLAN_VERSION` y `seq`, o el reconciliador lo borrará
 
 ### Purga de zombis (en `loadData`, tras dedup)
-- **Bug histórico**: `deduplicateData` ocultaba duplicados en pantalla pero NUNCA los borraba de DynamoDB → la tabla llegó a 1230 filas con ~596 reales (baby multiplicados ×5)
+- **Bug histórico**: `deduplicateData` ocultaba duplicados en pantalla pero NUNCA los borraba de DynamoDB → la tabla llegó a 1230 filas con ~596 reales
 - Ahora los ids descartados por dedup se borran de la BD (`_deleteRows`, chunks de 25, sin await). Cinturones: tope 800 ids y dataset retenido >= 200
 
-### Migración de fechas (`migrateDates2026`) — obsoleta tras el replan v5
-- Detecta si hay entradas de cert/aieng con fecha `< '2026-06-15'`
-- Si detecta, redistribuye: **1 cert/día + 1 aieng/día**, lunes a sábado, saltando fechas de examen
-- Categorías de cert: `aws, ai, terraform, cca, saa, repaso, english`
-- Baby entries con fechas viejas se shiftan +45 días, clamped a `>= '2026-06-15'`
-- Inicio del plan: **2026-06-15** (June 15, 2026 — hoy)
+### Sin actividades de bebé (eliminadas 24-oct-2026)
+- La categoría `baby` ya no existe: ni en INITIAL, ni generador diario, ni filtro, ni opción en el modal, ni plantillas, ni CSS
+- `loadData` borra en cada carga cualquier fila `cat==='baby'` que quede en DynamoDB (permanente, sin flag: también mata las que resuciten desde otra pestaña). Es el único sitio donde aparece `'baby'` en el código — no reintroducir
 
 ### Dedup (`deduplicateData`)
-- Clave para cat≠baby: `cat|week|topics(40ch)|name(30ch)`
-- Clave para baby: `baby|date` (máximo 1 baby por día)
+- Clave: `cat|week|topics(40ch)|name(30ch)`
 - Gana el ítem con mayor score: done(+10) + notes(+3) + realDur(+2)
 
 ### Reset de emergencia (`purgeAndReset`)
@@ -164,17 +169,27 @@ getAll (DynamoDB)
 - Botón "Seleccionar" en la vista diaria para seleccionar actividades y moverlas a otra fecha
 
 ### Plan de inglés A2→B1 (`ENGLISH_PLAN` + `buildEnglishEntries`)
-- Curso estructurado de 24 semanas (6 módulos de 4: 3 contenido + 1 repaso/evaluación), lun–sáb desde **2026-07-13** (mismo día del reinicio del plan), 30–40 min/día
+- Curso estructurado de 24 semanas (6 módulos de 4: 3 contenido + 1 repaso/evaluación), lun–sáb desde `EN_START = PLAN_START` (primera sesión 2026-11-02), **20–30 min/día** (cabe junto a la sesión cert)
 - Los ítems NO viven en INITIAL: se **generan** con `buildEnglishEntries()` desde `ENGLISH_PLAN` (24 semanas) × `EN_ROLES` (ciclo semanal fijo: Gramática → Vocab+Reading → Listening → Speaking → Writing → Repaso+test)
 - Repaso espaciado automático: cada semana referencia el vocab de las semanas de contenido ≈ n-1 y n-3 (las de repaso se saltan)
-- Salta domingos y fechas de examen (el ítem se omite, no se corre)
+- `buildEnglishEntries()` genera los 144 ítems con fechas provisionales; `replanAll()` los corre para saltar domingos, feriados y días de examen (ningún ítem se pierde)
+- La semana 6 es "Inglés de examen": superlativos y keywords de las preguntas AWS/TF (most cost-effective, least operational overhead…)
 - `mergeEnglishEntries()` (en `loadData`) lo agrega una vez a datos existentes — detecta por prefijo de week `'English S'` — y elimina las "Clase de inglés" genéricas pendientes (las done quedan como historial)
-- `cat='english'` NO está en `CERT_CATS`: es pista independiente, no entra en la redistribución de certs
+- `cat='english'` NO está en `CERT_TRACK`: es pista independiente con su propio empaquetado
 - Aparece en Hoy/calendario/tabla/semanas como una actividad diaria más
+
+### Guías de estudio detalladas (`study-guide.js` + visor 📖)
+- Cada una de las 156 sesiones cert tiene una guía: **Qué estudiar** (conceptos con datos concretos), **Lo que más pregunta el examen**, **Trampas**, **Práctica** paso a paso y **Autoevaluación** (preguntas con respuesta desplegable). Simulacros, repasos y exámenes traen el método (cómo hacerlo y cómo analizar)
+- Clave = **nombre exacto del ítem**. Si se renombra una sesión, hay que renombrar su guía (build_guide.py falla si no coinciden)
+- El contenido NO va a DynamoDB: es estático en `frontend/study-guide.js` (se carga con `<script src>` antes del script principal). Si no carga, la app funciona igual sin botones 📖
+- UI: botón 📖 en Hoy / mañana / esta semana / tabla, link "📖 Guía de estudio" en Semanas, botón en el modal de edición; en el calendario un clic abre la guía si existe (`openItem`). Visor `#guide-overlay` → `openGuide(id)` con links, "Editar" y "Marcar como hecha"
+- `renderGuide()` = mini-markdown propio (## · - · 1. · > · `? pregunta :: respuesta` · bloques ``` · `código` · **negrita**), escapa HTML. Ligaduras de fuente desactivadas en código (`~>` y `>=` deben verse literales)
+- **Para editar una guía**: cambiar `tools/study-plan/guide_*.py` → `python3 tools/study-plan/build_guide.py` → commit de ambos. Nunca editar `study-guide.js` a mano
+- **Para editar el temario**: `tools/study-plan/curriculum.py` → `--apply`; si el cambio es incompatible con lo guardado en DynamoDB, subir `PLAN_VERSION` (en index.html y curriculum.py) para que `upgradeToPlan` lo reemplace
 
 ### Vista AI Eng (`view-aieng`)
 - Tab propio "🧠 AI Eng" en el nav — separado de la vista Hoy
-- Los ítems `aieng` NO aparecen en Hoy/overdue/mañana/esta semana ni en `rescheduleOverdue`
+- En pausa durante las certs: `replanAll()` los agenda desde el lunes posterior al último examen
 - Muestra progress bar global + semanas colapsables con fecha de inicio por semana
 - Usa la misma estructura grid 4 columnas de `.week-item` (checkbox | fecha | name | topics)
 - `toggleDone` llama `renderAiEng()` cuando esa vista está activa
@@ -183,26 +198,27 @@ getAll (DynamoDB)
 
 ## Plan de certificaciones
 
-**Replan del 13 de julio 2026**: 4 certs en 2026 (CP → AI Pract → Terraform → Claude Architect F.) y SAA desplazada a 2027. Las fechas de examen las calcula `replanCerts2026()` en runtime según el progreso real (cada examen cae 2 días después de terminar su fase de estudio). Fechas estimadas en el peor caso (0 progreso previo):
+**Plan v4 (24 de octubre 2026)**: certificarse pasó a ser **obligatorio**; Libi nunca había usado los planes anteriores (0 progreso). Pedidos explícitos de Libi: **todo empieza el 1 de noviembre** (no quiere ver nada del calendario antes) y las certs van **por orden de facilidad, con la más fácil junto a Terraform**. Fechas calculadas por `replanAll()` con 0 progreso:
 
-| Cert | Sesiones | Pista | Fecha estimada |
-|------|----------|-------|-------------|
-| AWS Cloud Practitioner | 23 | secuencial | ~10 Agosto 2026 |
-| Terraform Associate | 24 | **paralela diaria desde 13-jul** | ~11 Agosto 2026 |
-| AWS AI Practitioner | 17 | secuencial | ~2 Septiembre 2026 |
-| Claude Certified Architect – Foundations (CCAR-F) | 22 | secuencial | ~1 Octubre 2026 |
-| AWS SAA | 27 | secuencial | ~12 Febrero 2027 (estudio arranca 11 Ene) |
-| AI Engineer | — | paralela | Q1 2027 |
+| Grupo | Cert | Versión | Semanas | Sesiones | Examen estimado |
+|---|------|---------|---------|----------|-----------------|
+| 1 | AWS Cloud Practitioner (la más fácil) | CLF-C02 | 5 | 29 | sáb 5 dic 2026 |
+| 1 | Terraform Associate (en paralelo) | **004** (TF 1.12) | 3 | 17 | sáb 21 nov 2026 |
+| 2 | AWS AI Practitioner | AIF-C01 | 4 (+1 de fiestas) | 23 | sáb 9 ene 2027 |
+| 3 | Claude Certified Architect – Foundations | CCAR-F | 4 | 23 | sáb 6 feb 2027 |
+| 4 | AWS Solutions Architect Associate | SAA-C03 | 10 | 59 | sáb 17 abr 2027 |
+| — | Inglés A2→B1 | — | 24 | 144 | termina ~30 abr 2027 |
+| — | AI Engineer | — | en pausa | 138 | desde 19 abr 2027 |
 
-**Terraform es pista paralela** (Libi lo usa a diario en el trabajo): 1 sesión TF/día junto a la sesión del track secuencial → 2 sesiones cert/día hasta ~8 de agosto, luego 1. Los exámenes CP (10 ago) y TF (11 ago) quedan seguidos — se pueden separar moviendo el examen a mano (persiste salvo que el reconciliador encuentre basura y re-empaquete).
+**Carga**: semanas 1–3 (CP + TF en paralelo) son las más pesadas: L–V ~1 h 50 (CP 45–50 + TF 40–45 + inglés 20–30), sábados hasta ~3 h 15. Desde la semana 4: L–V ~75–90 min, sábado 2–3 h, domingo libre.
 
-Si hay ítems `done`, las fechas reales serán anteriores. El banner de fases del header se rellena dinámicamente (`renderPhases()`) desde los ítems `examen` en los datos — nunca editar fechas de fases en el HTML.
+**Facilidad**: CP (fundamentos, 700/1000) < AI Practitioner (fundamentos + ML) < Claude Architect F. (escenarios, 720, poco material externo) < SAA (associate, temario enorme). Terraform (associate) va con la primera porque Libi lo usa a diario. CP → AIF encadenan (vocabulario AWS + voucher de 50% de AWS al aprobar).
 
-**Certificación Claude (actualizada julio 2026)**: el programa de Anthropic ahora tiene 4 exámenes (Associate-F $99, Developer-F $125, Architect-F $125, Architect-P $175), todos vía Pearson VUE (OnVUE) desde julio 2026, en inglés, 720/1000, validez 12 meses. El plan apunta a **CCAR-F**: 60 preguntas / 120 min, 5 dominios (Agentic 27%, Claude Code 20%, Prompts 20%, Tools/MCP 18%, Context 15%), 4 de 6 escenarios conocidos. Prep oficial gratis en Anthropic Academy (anthropic.skilljar.com) con practice exam. `refreshCcaInfo()` actualiza una vez los ítems CCA en la BD copiando topics/links desde INITIAL (detecta por 'Pearson' en el ítem BUFFER); el nombre `🏆 EXAMEN CCA Foundations` NO se renombra (lo referencia `NEW_EXAM` en la migración).
+**Datos de examen verificados (oct 2026)**: Terraform Associate 004 (desde ene 2026; 8 objetivos, nuevos: custom conditions, ephemeral/write-only, HCP projects; ~57 preguntas / 60 min, solo inglés). AWS: CLF-C02 y AIF-C01 90 min / 65 preguntas, SAA-C03 130 min; **ESL +30 min** para no nativos que rinden en inglés (se pide una vez en la cuenta de AWS Certification, antes de agendar). CCAR-F: 60 preguntas de escenario / 120 min, 720/1000, US$125, Pearson VUE, solo inglés, 5 dominios (Agentic 27%, Claude Code 20%, Prompts 20%, Tools/MCP 18%, Context 15%), 4 de 6 escenarios; prep oficial gratis en Anthropic Academy. Docs de Claude ahora en `platform.claude.com/docs` y `code.claude.com/docs`.
 
-**Regla de días cert**: 1 cert/día lunes-sábado desde 2026-06-15.
-**AI Eng es independiente**: 1 aieng/día desde 2026-07-01, en su propia vista. No se mezcla con la vista Hoy.
-**Inglés es independiente**: 1 english/día (30–40 min) lunes-sábado desde 2026-07-20, 24 semanas A2→B1, generado por `buildEnglishEntries()`. Sí aparece en la vista Hoy.
+**Formato de cada ítem cert**: `tema | por qué ahora | ▶ práctica | ✅ criterio de logro` + links con label (cursos que Libi ya tiene: Maarek CP/AIF/SAA, Zeal Vora TF, Neal Davis, Tutorials Dojo, Krausen; + docs oficiales). Cada primera sesión de fase incluye "reserva el examen". Las sesiones usan los labs sobre este mismo repo (main.tf, Cognito, DynamoDB) como material práctico.
+
+El banner de fases (`renderPhases()`) se rellena desde los ítems `examen` — nunca editar fechas en el HTML.
 
 ---
 
@@ -210,13 +226,12 @@ Si hay ítems `done`, las fechas reales serán anteriores. El banner de fases de
 
 | cat | Label | Color |
 |-----|-------|-------|
-| `aws` | ☁️ AWS | naranja |
-| `ai` | 🤖 AI Pract. | azul |
+| `aws` | ☁️ AWS (CP) | ámbar `#f59e0b` |
+| `ai` | 🤖 AI Pract. | naranja `#fb923c` |
 | `aieng` | 🧠 AI Eng | verde (`#4ade80`) |
-| `terraform` | 🟣 Terraform | morado |
-| `cca` | ✨ CCA | dorado |
-| `saa` | 🏗️ SAA | azul oscuro |
-| `baby` | 🩷 Bebé | rosa |
+| `terraform` | 🟣 Terraform | índigo `#818cf8` |
+| `cca` | ✨ CCA | violeta `#a78bfa` |
+| `saa` | 🏗️ SAA | cian `#22d3ee` |
 | `english` | 🇺🇸 English | — |
 | `repaso` | 📝 Repaso | — |
 | `examen` | 🎯 Examen | rojo |
@@ -238,17 +253,13 @@ Si hay ítems `done`, las fechas reales serán anteriores. El banner de fases de
 - **Causa**: catch block de `loadData` llamaba `saveData()` sobreescribiendo DynamoDB con datos por defecto
 - **Fix**: catch block sin `saveData()`; usa DynamoDB como fuente de verdad, localStorage solo como fallback offline
 
-### Baby activities multiplicándose
-- **Causa**: dedup usaba clave con contenido, múltiples babies en el mismo día pasaban
-- **Fix**: clave `'baby|'+date` → máximo 1 baby por día
-
 ### saveAll timeout (10s Lambda)
 - **Fix 1**: timeout subido a 29s en Terraform
 - **Fix 2**: frontend divide en chunks de 50 ítems por request
 
 ### Vista Semanas agrupada por etiqueta de texto (desorganizada tras el replan)
 - **Causa**: `renderWeekly` agrupaba por el string `item.week` — tras el replan convivían etiquetas viejas ("Semana 1", "Semana 12 CCA") con nuevas ("CP S1", "English S03") y el orden salía del orden de los datos
-- **Fix**: agrupa por semana **calendario** (lunes–domingo) derivada de `item.date` con `weekStartOf()`, numerada desde el reinicio (Semana 1 = 2026-07-13), orden cronológico, solo la semana actual abierta. La etiqueta `item.week` se muestra como tag de contexto solo si tiene formato nuevo (se ocultan las `/^Semana /` viejas)
+- **Fix**: agrupa por semana **calendario** (lunes–domingo) derivada de `item.date` con `weekStartOf()`, numerada desde el primer día de estudio (Semana 1 = la del 2026-11-02), orden cronológico, solo la semana actual abierta. La etiqueta `item.week` se muestra como tag de contexto solo si tiene formato nuevo (se ocultan las `/^Semana /` viejas)
 
 ### week-item grid roto en vistas nuevas
 - **Causa**: `.week-item` usa `grid-template-columns: 26px 82px auto 1fr` (4 cols). Si una vista nueva usa flex o distinto número de hijos, queda visualmente roto.
@@ -288,15 +299,12 @@ cd infrastructure && terraform output api_url
 
 ---
 
-## Estado actual (July 13, 2026)
+## Estado actual (24 de octubre 2026)
 
-- Plan cert activo desde 2026-06-15 (Libi estudia Terraform + AWS Cloud Practitioner)
-- AI Engineer separado en su propia vista; migración automática redistribuye a 2026-07-01+
+- **Plan v4** listo para arrancar el lunes 2026-11-02 (nada antes del 1-nov): CP + TF en paralelo → AI → CCA → SAA + inglés diario; AI Engineer en pausa. Certificarse es obligatorio para Libi
+- Al primer load con el código nuevo, `upgradeToPlan` reemplaza en DynamoDB todo el plan viejo pendiente (~500 deletes + saveAll; tarda unos segundos)
+- Actividades de bebé eliminadas de todo el proyecto (purga permanente en `loadData`)
 - Lambda funcional: CORS correcto, strings vacíos filtrados, dedup por ID
-- Frontend: chunks de 50, dedup por ID y por contenido
 - DynamoDB con PITR (35 días) + deletion protection + `prevent_destroy` en Terraform
 - Fechas: TODO en hora local del navegador — usar `fmtLocalDate`/`parseLocalDate`, nunca `toISOString()` ni `new Date('YYYY-MM-DD')`
 - Calendario: límites de navegación dinámicos (`calBounds()` deriva min/max de los datos)
-- Eliminados `index.html` y `CNAME` de la raíz (copias obsoletas; lo real vive en `frontend/`)
-- Plan de inglés A2→B1 integrado: 142 actividades generadas (24 semanas desde 2026-07-20); las "Clase de inglés" genéricas fueron reemplazadas
-- Replan v5 (13 Jul 2026): 4 certs en 2026 + SAA en Feb 2027; fechas de examen dinámicas según progreso; banner de fases dinámico (`renderPhases`)
